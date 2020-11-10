@@ -195,26 +195,23 @@ void Server::request_vote(){
 
 void Server::remote_vote_call(u_int32_t remote_id){
     std::cout<<"into remote vote call."<<std::endl;
-    int sockfd = get_client_sockfd();
-    struct sockaddr_in server;
-    server.sin_family = AF_INET;
     int port = std::stoi(servers_info[remote_id].port);
-    std::cout<<"connect port : "<<port<<std::endl;
-    server.sin_port = htons(port);
-    const char *addr = servers_info[remote_id].ip_addr.c_str();
-    std::cout<<"ip addr : "<<addr<<std::endl;
-    server.sin_addr.s_addr = inet_addr(servers_info[remote_id].ip_addr.c_str());
-    socklen_t len = sizeof(sockaddr_in);
-
-    int ret;
-    ret = connect(sockfd, (sockaddr*)&server, len);
-    if(ret<0){
-        printf("connect server failed...\n");
-        return ;
+    const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
+    int sockfd = connect_to_server(port, ip_addr);
+    if(sockfd<=0){
+        std::cout<<"connect failed."<<std::endl;
+        close(sockfd);
+        return;
     }
+    //std::cout<<"ip : "<<ip_addr<<" sockfd : "<<sockfd<<std::endl;
+    int ret;
     request_vote_package rvp;
     rvp.setdata(current_term, server_id, last_applied, last_applied);
     ret = send(sockfd, (void*)&rvp, sizeof(rvp), MSG_DONTWAIT);
+    if(ret<0){
+        close(sockfd);
+        return;
+    }
     vote_result_package vrp;
     fd_set rfd;
     FD_ZERO(&rfd);
@@ -265,21 +262,15 @@ void Server::request_heartbeat(){
 
 void Server::remote_append_call(u_int32_t remote_id){
     std::cout<<"into remote append call."<<std::endl;
-    int sockfd = get_client_sockfd();
-    struct sockaddr_in server;
-    server.sin_family = AF_INET;
     int port = std::stoi(servers_info[remote_id].port);
-    std::cout<<"connect port : "<<port<<std::endl;
-    server.sin_port = htons(port);
-    server.sin_addr.s_addr = inet_addr(servers_info[remote_id].ip_addr.c_str());
-    socklen_t len = sizeof(sockaddr_in);
+    const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
+    int sockfd = connect_to_server(port, ip_addr);
+    if(sockfd<=0){
+        std::cout<<"connect failed."<<std::endl;
+        return;
+    }
 
     int ret;
-    ret = connect(sockfd, (sockaddr*)&server, len);
-    if(ret<0){
-        printf("connect server failed...\n");
-        return ;
-    }
     request_append_package rap;
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (u_int8_t*)logentry.c_str(), commit_index);
