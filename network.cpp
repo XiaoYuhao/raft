@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include <iostream>
 #include "network.h"
 
 int startup(int _port){
@@ -71,24 +72,54 @@ void removefd(int epollfd, int fd){
     close(fd);
 }
 
-int get_client_sockfd(){
-    int sock=socket(AF_INET,SOCK_STREAM,0);
-	if(sock<0)
+int connect_to_server(const int _port, const char *ip_addr){
+    int sockfd=socket(AF_INET,SOCK_STREAM,0);
+	if(sockfd<0)
 	{
 		perror("socket");
-		return 1;
+		return -1;
 	}
 	
 	int val;
-	if(val=fcntl(sock,F_GETFL,0)<0){//获取文件状态标志
+	if(val=fcntl(sockfd,F_GETFL,0)<0){//获取文件状态标志
 		perror("fcntl");
-		close(sock);
-		return 0;
+		close(sockfd);
+		return -1;
 	}
-	if(fcntl(sock,F_SETFL,val|O_NONBLOCK)<0){//设置文件状态标志
+	if(fcntl(sockfd,F_SETFL,val|O_NONBLOCK)<0){//设置文件状态标志
 		perror("fcntl");
-		close(sock);
-		return 0;
+		close(sockfd);
+		return -1;
 	}
-	return sock;
+    struct sockaddr_in server;
+    server.sin_family = AF_INET;
+    server.sin_port = htons(_port);
+    server.sin_addr.s_addr = inet_addr(ip_addr);
+    socklen_t len = sizeof(sockaddr_in);
+
+    int ret;
+    ret = connect(sockfd,(struct sockaddr*)&server,len);
+    if(ret<0&&errno!=EINPROGRESS){
+        //std::cout<<"connect failed."<<std::endl;
+        return -1;
+    }
+    struct timeval tm;
+    tm.tv_sec = 0;
+    tm.tv_usec = 50*1000;
+    fd_set wfd;
+	FD_ZERO(&wfd);
+	FD_SET(sockfd,&wfd);
+	switch(select(sockfd+1,NULL,&wfd,NULL,&tm))
+	{
+		case -1:
+			perror("select");
+			return -1;
+		case 0:
+			printf("超时！\n");
+			return 0;
+		default:
+            //std::cout<<"connect successful."<<std::endl;
+			return sockfd;
+	}
+	return sockfd;
 }
