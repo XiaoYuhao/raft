@@ -119,7 +119,11 @@ int connect_to_server(const int _port, const char *ip_addr){
 			return 0;
 		default:
             //std::cout<<"connect successful."<<std::endl;
-			return sockfd;
+            ret = getpeername(sockfd, (struct sockaddr*)&server, &len);
+            if(ret == -1){
+                return -1;
+            }
+			else return sockfd;
 	}
 	return sockfd;
 }
