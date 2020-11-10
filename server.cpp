@@ -61,7 +61,7 @@ void Server::election_timeout(){    //选举超时处理
 
     request_vote();
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    if(voted_num >= server_num / 2){    //得票数超过半数，赢得选举
+    if(voted_num > server_num / 2){    //得票数超过半数，赢得选举
         state = LEADER;
     }
     voted_for = -1;
@@ -160,6 +160,7 @@ void Server::start_server(){
         }
 
     }
+    std::cout<<"server error."<<std::endl;
 }
 
 
@@ -193,10 +194,15 @@ void Server::request_vote(){
 }
 
 void Server::remote_vote_call(u_int32_t remote_id){
+    std::cout<<"into remote vote call."<<std::endl;
     int sockfd = get_client_sockfd();
     struct sockaddr_in server;
     server.sin_family = AF_INET;
-    server.sin_port = htons(std::stoi(servers_info[remote_id].port));
+    int port = std::stoi(servers_info[remote_id].port);
+    std::cout<<"connect port : "<<port<<std::endl;
+    server.sin_port = htons(port);
+    const char *addr = servers_info[remote_id].ip_addr.c_str();
+    std::cout<<"ip addr : "<<addr<<std::endl;
     server.sin_addr.s_addr = inet_addr(servers_info[remote_id].ip_addr.c_str());
     socklen_t len = sizeof(sockaddr_in);
 
@@ -258,10 +264,13 @@ void Server::request_heartbeat(){
 }
 
 void Server::remote_append_call(u_int32_t remote_id){
+    std::cout<<"into remote append call."<<std::endl;
     int sockfd = get_client_sockfd();
     struct sockaddr_in server;
     server.sin_family = AF_INET;
-    server.sin_port = htons(std::stoi(servers_info[remote_id].port));
+    int port = std::stoi(servers_info[remote_id].port);
+    std::cout<<"connect port : "<<port<<std::endl;
+    server.sin_port = htons(port);
     server.sin_addr.s_addr = inet_addr(servers_info[remote_id].ip_addr.c_str());
     socklen_t len = sizeof(sockaddr_in);
 
