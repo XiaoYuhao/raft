@@ -10,7 +10,7 @@ TARGET	:= test
 #compile and lib parameter
 CXX		:= g++
 LIBS	:= 
-LDFLAGS	:= 
+LDFLAGS	:= -lpthread
 DEFINES	:=
 CFLAGS	:= 
 CXXFLAGS:= -std=c++11
