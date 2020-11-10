@@ -22,7 +22,7 @@ public:
         //      std::cout << "timer destructed!" << std::endl;
     }
  
-    void StartTimer(int interval, std::function<void()> task){
+    void Start(int interval, std::function<void()> task){
         if (expired_ == false){
             //          std::cout << "timer is currently running, please expire it first..." << std::endl;
             return;
@@ -41,6 +41,14 @@ public:
             }
         }).detach();
     }
+
+    void startOnce(int delay, std::function<void()> task)
+	{
+		std::thread([delay, task]() {
+			std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+			task();
+		}).detach();
+	}
  
     void Expire(){
         if (expired_){

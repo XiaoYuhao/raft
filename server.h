@@ -3,10 +3,15 @@
 #include<cstdlib>
 #include<vector>
 #include<string>
+#include<atomic>
 #include"timer.h"
 #include"pthreadpool.h"
 
 using std::string;
+using std::atomic_uint_fast32_t;
+using std::atomic_bool;
+using std::atomic_uint;
+using std::atomic_ullong;
 
 const u_int8_t LEADER    = 0x01;
 const u_int8_t FOLLOWER  = 0x02;
@@ -23,13 +28,16 @@ class Server{
     u_int32_t server_num;
     vector<server_info> servers_info;
 
-//Persistent state on all servers    
-    u_int8_t state;
-    u_int64_t current_term;
-    u_int32_t voted_for;
-    std::vector<u_int32_t> log;
+    u_int32_t timeout_val;
+    atomic_bool timeout_flag;
 
-    u_int32_t voted_num;
+//Persistent state on all servers    
+    atomic_uint state;
+    atomic_ullong current_term;
+    atomic_uint voted_for;
+    vector<u_int32_t> log;
+
+    atomic_uint voted_num;
 
 //Volatile state on all servers
     u_int64_t commit_index;
@@ -45,12 +53,14 @@ class Server{
     static Server* _instance;
     Server(string config_file);
     void election_timeout();
-    int timeout_val;
     void election();
     void request_vote();
-    void remote_procedure_call(u_int32_t server_id, u_int8_t rpc_type);
+    void remote_vote_call(u_int32_t remote_id);
+    void request_heartbeat();
+    void remote_append_call(u_int32_t remote_id);
     void send_to_servers();
     void read_config(string config_file);
+    void start_server();
 public:
     static Server* create(string _config);
     void work();

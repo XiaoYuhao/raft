@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include "network.h"
 
 int startup(int _port){
     int sock=socket(AF_INET,SOCK_STREAM,0);
@@ -70,7 +71,7 @@ void removefd(int epollfd, int fd){
     close(fd);
 }
 
-int get_cilent_sockfd(){
+int get_client_sockfd(){
     int sock=socket(AF_INET,SOCK_STREAM,0);
 	if(sock<0)
 	{

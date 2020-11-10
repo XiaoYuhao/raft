@@ -86,7 +86,7 @@ struct request_append_package{
     u_int8_t log_entry[128];
     u_int64_t leader_commit;
     request_append_package(){}
-    void serdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
+    void setdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
             u_int64_t _prevlog_term, u_int8_t *_log_entry, u_int64_t _leader_commit)
     {
         header.package_type = REQ_APPEND;
