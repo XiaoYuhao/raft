@@ -102,7 +102,7 @@ void Server::start_server(){
             int sockfd = events[i].data.fd;
             if(sockfd == listen_sock){
                 int client_sock = accept(listen_sock, (struct sockaddr*)&remote, &len);
-                sockfd_ip[client_sock] = remote.sin_addr.s_addr;
+                sockfd_ip[client_sock] = inet_ntoa(remote.sin_addr);
                 addfd(epfd, client_sock);
             }
             else if(events[i].events&EPOLLIN){
