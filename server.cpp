@@ -48,6 +48,7 @@ Server::Server(string config_file){
 }
 
 void Server::election_timeout(){    //选举超时处理
+    if(state == LEADER) return;     //自身状态为leader，不需要进行选举
     if(!timeout_flag){              //timeout_flag为false
         timeout_flag = true;
         return;
