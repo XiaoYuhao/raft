@@ -115,10 +115,10 @@ void Server::start_server(){
                     continue;
                 }
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
-                    std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<std::endl;
                     request_append_package rap;
                     ret = recv(sockfd, (void *)&rap, sizeof(rap), MSG_DONTWAIT);
                     rap.tohost();
+                    std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
                     //TODO
                     append_result_package arp;
                     if(current_term > rap.term){            //拒绝响应过期的term
@@ -140,10 +140,10 @@ void Server::start_server(){
                     ret = send(sockfd, (void *)&arp, sizeof(arp), MSG_DONTWAIT);
                 }
                 if(header.package_type == REQ_VOTE){        //收到来自candidate的vote请求包
-                    std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<std::endl;
                     request_vote_package rvp;
                     ret = recv(sockfd, (void *)&rvp, sizeof(rvp), MSG_DONTWAIT);
                     rvp.tohost();
+                    std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
                     //TODO
                     vote_result_package vrp;
                     if(current_term > rvp.term){
@@ -236,8 +236,8 @@ void Server::remote_vote_call(u_int32_t remote_id){
     }
     close(sockfd);
     if(ret == 0) return;
-    std::cout<<"receive vote result package from "<<ip_addr<<std::endl;
     vrp.tohost();
+    std::cout<<"receive vote result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<vrp.term<<std::endl;
     if(vrp.term > current_term){        //remote term > current term
         state = FOLLOWER;
     }
@@ -299,8 +299,9 @@ void Server::remote_append_call(u_int32_t remote_id){
     }
     close(sockfd);
     if(ret == 0) return;
-    std::cout<<"receive a append result package from "<<ip_addr<<std::endl;
     arp.tohost();
+    std::cout<<"receive a append result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<arp.term<<std::endl;
+
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
     }
