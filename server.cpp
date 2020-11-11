@@ -149,7 +149,7 @@ void Server::start_server(){
                     if(current_term > rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
-                    else if(voted_for == -1){
+                    else if(state == FOLLOWER && voted_for == -1){  //如果是follower，且之前没有给其它candidate投票
                         current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
