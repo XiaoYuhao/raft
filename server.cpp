@@ -149,7 +149,7 @@ void Server::start_server(){
                     if(current_term > rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
-                    else if(voted_for == -1 || voted_for == rvp.candidate_id){
+                    else if(voted_for == -1){
                         current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
