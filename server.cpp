@@ -42,7 +42,7 @@ Server::Server(string config_file){
     match_index  = 0;
 
     std::default_random_engine random(time(NULL));
-    std::uniform_int_distribution<u_int32_t> dis1(1000,20000);
+    std::uniform_int_distribution<u_int32_t> dis1(5000,20000);
     timeout_val = dis1(random);             //随机选取一个timeout的时间，区间为150ms~300ms
     timeout_flag = true;
 }
@@ -317,7 +317,7 @@ void Server::work(){
     //timer.Start(100, bind(&Server::request_heartbeat, this));
     for(;;){
         request_heartbeat();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
 
