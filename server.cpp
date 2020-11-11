@@ -149,10 +149,11 @@ void Server::start_server(){
                     if(current_term > rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
-                    else if(voted_for == -1 || voted_for == rvp.candidate_id){
+                    else if(voted_for == -1){
                         current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
+                        std::cout<<"vote for "<<voted_for<<std::endl;
                     }
                     else{
                         current_term = rvp.term;
@@ -247,6 +248,7 @@ void Server::remote_vote_call(u_int32_t remote_id){
     }
     else if(vrp.term == current_term){  //remote term == current term
         if(vrp.vote_granted == VOTE_GRANT_TRUE){
+            std::cout<<"server ip "<<ip_addr<<" vote for me."<<std::endl;
             voted_num++;
         }
     }
