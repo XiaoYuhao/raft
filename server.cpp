@@ -90,7 +90,7 @@ void Server::start_server(){
     struct epoll_event events[1024];
 
     addfd(epfd, listen_sock);
-
+    map<int, string> sockfd_ip;
     int ret = 0;
     for(;;){
         int nfds = epoll_wait(epfd, events, 1024, -1);
@@ -102,6 +102,7 @@ void Server::start_server(){
             int sockfd = events[i].data.fd;
             if(sockfd == listen_sock){
                 int client_sock = accept(listen_sock, (struct sockaddr*)&remote, &len);
+                sockfd_ip[client_sock] = remote.sin_addr.s_addr;
                 addfd(epfd, client_sock);
             }
             else if(events[i].events&EPOLLIN){
@@ -114,7 +115,7 @@ void Server::start_server(){
                     continue;
                 }
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
-                    std::cout<<"receive a request append package."<<std::endl;
+                    std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<std::endl;
                     request_append_package rap;
                     ret = recv(sockfd, (void *)&rap, sizeof(rap), MSG_DONTWAIT);
                     rap.tohost();
@@ -139,7 +140,7 @@ void Server::start_server(){
                     ret = send(sockfd, (void *)&arp, sizeof(arp), MSG_DONTWAIT);
                 }
                 if(header.package_type == REQ_VOTE){        //收到来自candidate的vote请求包
-                    std::cout<<"receive a request vote package."<<std::endl;
+                    std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<std::endl;
                     request_vote_package rvp;
                     ret = recv(sockfd, (void *)&rvp, sizeof(rvp), MSG_DONTWAIT);
                     rvp.tohost();
@@ -298,7 +299,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     }
     close(sockfd);
     if(ret == 0) return;
-    std::cout<<"receive a append result package from"<<ip_addr<<std::endl;
+    std::cout<<"receive a append result package from "<<ip_addr<<std::endl;
     arp.tohost();
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
