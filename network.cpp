@@ -104,7 +104,7 @@ int connect_to_server(const int _port, const char *ip_addr){
         return -1;
     }
     struct timeval tm;
-    tm.tv_sec = 2;
+    tm.tv_sec = 4;
     tm.tv_usec = 0;
     fd_set wfd;
 	FD_ZERO(&wfd);
