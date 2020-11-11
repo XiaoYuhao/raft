@@ -146,7 +146,7 @@ void Server::start_server(){
                     std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
                     //TODO
                     vote_result_package vrp;
-                    if(current_term > rvp.term){
+                    if(current_term >= rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
                     else if(state == FOLLOWER && voted_for == -1){  //如果是follower，且之前没有给其它candidate投票
