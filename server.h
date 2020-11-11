@@ -3,6 +3,7 @@
 #include<cstdlib>
 #include<vector>
 #include<string>
+#include<map>
 #include<atomic>
 #include"timer.h"
 #include"pthreadpool.h"
@@ -12,6 +13,7 @@ using std::atomic_uint_fast32_t;
 using std::atomic_bool;
 using std::atomic_uint;
 using std::atomic_ullong;
+using std::map;
 
 const u_int8_t LEADER    = 0x01;
 const u_int8_t FOLLOWER  = 0x02;
