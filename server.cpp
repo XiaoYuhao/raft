@@ -154,6 +154,7 @@ void Server::start_server(){
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
                         std::cout<<"vote for "<<voted_for<<std::endl;
+                        timeout_flag = false;   //  若给某个server投票，则应该期待其成为leader，取消本次timeout
                     }
                     else{
                         current_term = rvp.term;
