@@ -150,10 +150,12 @@ void Server::start_server(){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
                     else if(voted_for == -1 || voted_for == rvp.candidate_id){
+                        current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
                     }
                     else{
+                        current_term = rvp.term;
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
                     ret = send(sockfd, (void *)&vrp, sizeof(vrp), MSG_DONTWAIT);
@@ -240,6 +242,8 @@ void Server::remote_vote_call(u_int32_t remote_id){
     std::cout<<"receive vote result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<vrp.term<<std::endl;
     if(vrp.term > current_term){        //remote term > current term
         state = FOLLOWER;
+        timeout_flag = false;
+        current_term = vrp.term;
     }
     else if(vrp.term == current_term){  //remote term == current term
         if(vrp.vote_granted == VOTE_GRANT_TRUE){
@@ -304,6 +308,8 @@ void Server::remote_append_call(u_int32_t remote_id){
 
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
+        timeout_flag = false;
+        current_term = arp.term;
     }
     else if(arp.term == current_term){  //remote term == current term
         //TODO
