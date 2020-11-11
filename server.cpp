@@ -199,7 +199,7 @@ void Server::remote_vote_call(u_int32_t remote_id){
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     int sockfd = connect_to_server(port, ip_addr);
     if(sockfd<=0){
-        std::cout<<"connect failed."<<std::endl;
+        std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
         close(sockfd);
         return;
     }
@@ -234,7 +234,7 @@ void Server::remote_vote_call(u_int32_t remote_id){
     }
     close(sockfd);
     if(ret == 0) return;
-    std::cout<<"receive vote result package."<<std::endl;
+    std::cout<<"receive vote result package from "<<ip_addr<<std::endl;
     vrp.tohost();
     if(vrp.term > current_term){        //remote term > current term
         state = FOLLOWER;
@@ -266,7 +266,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     int sockfd = connect_to_server(port, ip_addr);
     if(sockfd<=0){
-        std::cout<<"connect failed."<<std::endl;
+        std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
         return;
     }
 
@@ -297,7 +297,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     }
     close(sockfd);
     if(ret == 0) return;
-    std::cout<<"receive a append result package."<<std::endl;
+    std::cout<<"receive a append result package from"<<ip_addr<<std::endl;
     arp.tohost();
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
