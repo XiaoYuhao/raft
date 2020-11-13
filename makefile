@@ -9,8 +9,8 @@ TARGET	:= test
 
 #compile and lib parameter
 CXX		:= g++
-LIBS	:= 
-LDFLAGS	:= -lpthread
+LIBS	:= -lpthread
+LDFLAGS	:= 
 DEFINES	:=
 CFLAGS	:= 
 CXXFLAGS:= -std=c++11
@@ -22,7 +22,7 @@ LIB :=
 
 #link
 $(TARGET): $(OBJS) $(SOURCE)
-	$(CXX) -o $@ $(CFLAGS) $(CXXFLAGS) $(LDFLAGS) $^
+	$(CXX) -o $@ $(CFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS)
 
 #clean
 clean:
