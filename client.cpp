@@ -1,15 +1,19 @@
 #include<iostream>
-#include"package.h"
-#include"network.h"
+//#include"package.h"
+//#include"network.h"
+//#include"logger.h"
+#include"pthreadpool.h"
+
+void func(int id){
+    std::cout<<"message "<<"from "<<id<<std::endl;
+    return ;
+}
 
 int main(){
-    int sockfd = connect_to_server(11234, "47.116.133.175");
-    if(sockfd<=0){
-        std::cout<<"connect to server failed."<<std::endl;
+    ThreadPool pool;
+    for(int i=0;i<20;i++){
+        pool.append(std::bind(func, i));
     }
-    else{
-        std::cout<<sockfd<<std::endl;
-        std::cout<<"connect to server successful."<<std::endl;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     return 0;
 }
