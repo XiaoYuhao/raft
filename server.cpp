@@ -45,6 +45,8 @@ Server::Server(string config_file){
     std::uniform_int_distribution<u_int32_t> dis1(5000,20000);
     timeout_val = dis1(random);             //随机选取一个timeout的时间，区间为150ms~300ms
     timeout_flag = true;
+
+    logger.openlog("test.log");
 }
 
 void Server::election_timeout(){    //选举超时处理
@@ -54,7 +56,8 @@ void Server::election_timeout(){    //选举超时处理
         return;
     }
     /*状态转变为candidate， term加1， 并开启一轮新的选举*/
-    std::cout<<"election timeout."<<std::endl;
+    //std::cout<<"election timeout."<<std::endl;
+    logger.info("election timeout.\n");
     state = CANDIDATE;
     current_term++;
     voted_for = server_id;  //给自己投一票
@@ -118,7 +121,8 @@ void Server::start_server(){
                     request_append_package rap;
                     ret = recv(sockfd, (void *)&rap, sizeof(rap), MSG_DONTWAIT);
                     rap.tohost();
-                    std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
+                    //std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
+                    logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
                     //TODO
                     append_result_package arp;
                     if(current_term > rap.term){            //拒绝响应过期的term
@@ -143,7 +147,8 @@ void Server::start_server(){
                     request_vote_package rvp;
                     ret = recv(sockfd, (void *)&rvp, sizeof(rvp), MSG_DONTWAIT);
                     rvp.tohost();
-                    std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
+                    //std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
+                    logger.debug("receive a request vote package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rvp.term);
                     //TODO
                     vote_result_package vrp;
                     if(current_term >= rvp.term){
@@ -153,7 +158,8 @@ void Server::start_server(){
                         current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
-                        std::cout<<"vote for "<<voted_for<<std::endl;
+                        //std::cout<<"vote for "<<voted_for<<std::endl;
+                        logger.debug("vote for %d \n", (u_int32_t)voted_for);
                         timeout_flag = false;   //  若给某个server投票，则应该期待其成为leader，取消本次timeout
                     }
                     else{
@@ -166,7 +172,8 @@ void Server::start_server(){
         }
 
     }
-    std::cout<<"server error."<<std::endl;
+    //std::cout<<"server error."<<std::endl;
+    logger.error("server error. \n");
 }
 
 
@@ -200,12 +207,14 @@ void Server::request_vote(){
 }
 
 void Server::remote_vote_call(u_int32_t remote_id){
-    std::cout<<"into remote vote call."<<std::endl;
+    //std::cout<<"into remote vote call."<<std::endl;
+
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     int sockfd = connect_to_server(port, ip_addr);
     if(sockfd<=0){
-        std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
+        //std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
+        logger.warn("connect %s failed. \n", ip_addr);
         close(sockfd);
         return;
     }
@@ -225,15 +234,15 @@ void Server::remote_vote_call(u_int32_t remote_id){
     ret = 0;
     switch(select(sockfd+1, &rfd, NULL, NULL, NULL)){
         case -1:
-            printf("select error.\n");
+            logger.error("select error.\n");
             break;
         case 0:
-            printf("select timeout.\n");
+            logger.warn("select timeout.\n");
             break;
         default:
             ret = recv(sockfd, (void*)&vrp, sizeof(vrp), MSG_DONTWAIT);
             if(ret == 0){
-                printf("server quit.\n");
+                logger.info("server quit.\n");
                 break;
             }
             break;
@@ -241,7 +250,8 @@ void Server::remote_vote_call(u_int32_t remote_id){
     close(sockfd);
     if(ret == 0) return;
     vrp.tohost();
-    std::cout<<"receive vote result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<vrp.term<<std::endl;
+    //std::cout<<"receive vote result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<vrp.term<<std::endl;
+    logger.info("receive vote result package from %s current_term %d term %d \n", ip_addr, (u_int64_t)current_term, (u_int64_t)vrp.term);
     if(vrp.term > current_term){        //remote term > current term
         state = FOLLOWER;
         timeout_flag = false;
@@ -249,7 +259,8 @@ void Server::remote_vote_call(u_int32_t remote_id){
     }
     else if(vrp.term == current_term){  //remote term == current term
         if(vrp.vote_granted == VOTE_GRANT_TRUE){
-            std::cout<<"server ip "<<ip_addr<<" vote for me."<<std::endl;
+            //std::cout<<"server ip "<<ip_addr<<" vote for me."<<std::endl;
+            logger.info("server ip %s vote for me. \n", ip_addr);
             voted_num++;
         }
     }
@@ -270,12 +281,14 @@ void Server::request_heartbeat(){
 }
 
 void Server::remote_append_call(u_int32_t remote_id){
-    std::cout<<"into remote append call."<<std::endl;
+    //std::cout<<"into remote append call."<<std::endl;
+    logger.debug("into remote append call.");
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     int sockfd = connect_to_server(port, ip_addr);
     if(sockfd<=0){
-        std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
+        //std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
+        logger.warn("connect %s failed. \n", ip_addr);
         return;
     }
 
@@ -291,15 +304,18 @@ void Server::remote_append_call(u_int32_t remote_id){
     ret = 0;
     switch(select(sockfd+1, &rfd, NULL, NULL, NULL)){
         case -1:
-            printf("select error.\n");
+            //printf("select error.\n");
+            logger.error("select error\n");
             break;
         case 0:
-            printf("select timeout.\n");
+            //printf("select timeout.\n");
+            logger.warn("select timeout. \n");
             break;
         default:
             ret = recv(sockfd, (void*)&arp, sizeof(arp), MSG_DONTWAIT);
             if(ret == 0){
-                printf("server quit.\n");
+                //printf("server quit.\n");
+                logger.info("server quit. \n");
                 break;
             }
             break;
@@ -307,8 +323,8 @@ void Server::remote_append_call(u_int32_t remote_id){
     close(sockfd);
     if(ret == 0) return;
     arp.tohost();
-    std::cout<<"receive a append result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<arp.term<<std::endl;
-
+    //std::cout<<"receive a append result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<arp.term<<std::endl;
+    logger.info("receive a append result package from %s current_term %d term %lld \n", ip_addr, (u_int64_t)current_term, (u_int64_t)arp.term);
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
         timeout_flag = false;

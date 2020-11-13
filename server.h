@@ -5,6 +5,7 @@
 #include<string>
 #include<map>
 #include<atomic>
+#include"logger.h"
 #include"timer.h"
 #include"pthreadpool.h"
 
@@ -14,6 +15,7 @@ using std::atomic_bool;
 using std::atomic_uint;
 using std::atomic_ullong;
 using std::map;
+using namespace Log;
 
 const u_int8_t LEADER    = 0x01;
 const u_int8_t FOLLOWER  = 0x02;
@@ -52,6 +54,7 @@ class Server{
 // 
     Timer timer;
     ThreadPool pool;
+    Logger logger;
     static Server* _instance;
     Server(string config_file);
     void election_timeout();
