@@ -30,7 +30,7 @@ public:
     void get_current_time(char *current_time){
         time_t now = time(0);
         tm *ltm = localtime(&now);
-        sprintf(current_time, "%d_%02d_%02d_%02d_%02d_%02d",ltm->tm_year + 1900, 
+        sprintf(current_time, "%d-%02d-%02d-%02d-%02d-%02d",ltm->tm_year + 1900, 
             ltm->tm_mon + 1, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
     }
     int openlog(const char *_log_name, int _mode = CONSOLE){
