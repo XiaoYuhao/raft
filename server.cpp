@@ -282,7 +282,7 @@ void Server::request_heartbeat(){
 
 void Server::remote_append_call(u_int32_t remote_id){
     //std::cout<<"into remote append call."<<std::endl;
-    logger.debug("into remote append call.");
+    logger.debug("into remote append call. \n");
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     int sockfd = connect_to_server(port, ip_addr);
