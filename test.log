@@ -1,0 +1,69 @@
+2020_11_13_22_14_23 DEBUG : receive a request vote package from 111.231.146.249 current_term 0 term 1 
+2020_11_13_22_14_23 DEBUG : vote for 0 
+2020_11_13_22_14_24 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_25 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_26 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_27 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_28 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_29 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_30 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_31 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_32 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_33 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_34 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_35 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_36 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_37 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_38 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_39 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_40 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_41 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_42 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_43 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_44 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_45 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_46 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_47 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_48 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_14_49 DEBUG : receive a request append package from 111.231.146.249 current_term 1 term 1 
+2020_11_13_22_15_01 INFO  : election timeout.
+2020_11_13_22_15_01 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_01 INFO  : receive vote result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_01 INFO  : server ip 47.116.133.175 vote for me. 
+2020_11_13_22_15_02 DEBUG : into remote append call.2020_11_13_22_15_02 DEBUG : into remote append call.2020_11_13_22_15_02 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_02 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_03 DEBUG : into remote append call.2020_11_13_22_15_03 DEBUG : into remote append call.2020_11_13_22_15_03 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_03 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_04 DEBUG : into remote append call.2020_11_13_22_15_04 DEBUG : into remote append call.2020_11_13_22_15_04 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_04 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_05 DEBUG : into remote append call.2020_11_13_22_15_05 DEBUG : into remote append call.2020_11_13_22_15_05 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_05 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_06 DEBUG : into remote append call.2020_11_13_22_15_06 DEBUG : into remote append call.2020_11_13_22_15_06 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_06 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_07 DEBUG : into remote append call.2020_11_13_22_15_07 DEBUG : into remote append call.2020_11_13_22_15_07 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_07 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_08 DEBUG : into remote append call.2020_11_13_22_15_08 DEBUG : into remote append call.2020_11_13_22_15_08 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_08 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_09 DEBUG : into remote append call.2020_11_13_22_15_09 DEBUG : into remote append call.2020_11_13_22_15_09 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_09 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_10 DEBUG : into remote append call.2020_11_13_22_15_10 DEBUG : into remote append call.2020_11_13_22_15_10 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_10 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_11 DEBUG : into remote append call.2020_11_13_22_15_11 DEBUG : into remote append call.2020_11_13_22_15_11 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_11 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_12 DEBUG : into remote append call.2020_11_13_22_15_12 DEBUG : into remote append call.2020_11_13_22_15_12 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_12 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_13 DEBUG : into remote append call.2020_11_13_22_15_13 DEBUG : into remote append call.2020_11_13_22_15_13 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_13 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_14 DEBUG : into remote append call.2020_11_13_22_15_14 DEBUG : into remote append call.2020_11_13_22_15_14 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_14 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_15 DEBUG : into remote append call.2020_11_13_22_15_15 DEBUG : into remote append call.2020_11_13_22_15_15 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_15 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_16 DEBUG : into remote append call.2020_11_13_22_15_16 DEBUG : into remote append call.2020_11_13_22_15_16 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_16 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_17 DEBUG : into remote append call.2020_11_13_22_15_17 DEBUG : into remote append call.2020_11_13_22_15_17 WARN  : connect 111.231.146.249 failed. 
+2020_11_13_22_15_17 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_18 DEBUG : into remote append call.2020_11_13_22_15_18 DEBUG : into remote append call.2020_11_13_22_15_18 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_18 INFO  : receive a append result package from 111.231.146.249 current_term 2 term 2 
+2020_11_13_22_15_19 DEBUG : into remote append call.2020_11_13_22_15_19 DEBUG : into remote append call.2020_11_13_22_15_19 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
+2020_11_13_22_15_19 INFO  : receive a append result package from 111.231.146.249 current_term 2 term 2 
+2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 INFO  : rece
