@@ -214,6 +214,7 @@ void Server::remote_vote_call(u_int32_t remote_id){
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     if(servers_info[remote_id].fd<0){
         servers_info[remote_id].fd = connect_to_server(port, ip_addr);
+        logger.debug("sockfd : %d \n", servers_info[remote_id].fd);
     }
     int sockfd = servers_info[remote_id].fd;
     if(sockfd<=0){
