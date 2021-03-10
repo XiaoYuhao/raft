@@ -114,7 +114,8 @@ void Server::start_server(){
                 if((ret<0)&&(errno!=EINTR)){
                     continue;
                 }
-                if(ret<=0){
+                if(ret<=0){                                 //出错或断线
+                    removefd(epfd, sockfd);
                     continue;
                 }
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
@@ -186,6 +187,7 @@ void Server::read_config(string config_file){
     for(int i=0;i<server_num;i++){
         file>>info.ip_addr;
         file>>info.port;
+        info.fd = -1;
         servers_info.push_back(info);
     }
     file.close();
@@ -208,14 +210,16 @@ void Server::request_vote(){
 
 void Server::remote_vote_call(u_int32_t remote_id){
     //std::cout<<"into remote vote call."<<std::endl;
-
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
-    int sockfd = connect_to_server(port, ip_addr);
+    if(servers_info[remote_id].fd<0){
+        servers_info[remote_id].fd = connect_to_server(port, ip_addr);
+    }
+    int sockfd = servers_info[remote_id].fd;
     if(sockfd<=0){
         //std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
         logger.warn("connect %s failed. \n", ip_addr);
-        close(sockfd);
+        //close(sockfd);
         return;
     }
     //std::cout<<"ip : "<<ip_addr<<" sockfd : "<<sockfd<<std::endl;
@@ -224,6 +228,7 @@ void Server::remote_vote_call(u_int32_t remote_id){
     rvp.setdata(current_term, server_id, last_applied, last_applied);
     ret = send(sockfd, (void*)&rvp, sizeof(rvp), MSG_DONTWAIT);
     if(ret<0){
+        servers_info[remote_id].fd = -1;
         close(sockfd);
         return;
     }
@@ -247,8 +252,11 @@ void Server::remote_vote_call(u_int32_t remote_id){
             }
             break;
     }
-    close(sockfd);
-    if(ret == 0) return;
+    if(ret<=0){
+        servers_info[remote_id].fd = -1;
+        close(sockfd);
+        return;
+    }
     vrp.tohost();
     //std::cout<<"receive vote result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<vrp.term<<std::endl;
     logger.info("receive vote result package from %s current_term %d term %d \n", ip_addr, (u_int64_t)current_term, (u_int64_t)vrp.term);
@@ -285,7 +293,10 @@ void Server::remote_append_call(u_int32_t remote_id){
     logger.debug("into remote append call. \n");
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
-    int sockfd = connect_to_server(port, ip_addr);
+    if(servers_info[remote_id].fd<0){
+        servers_info[remote_id].fd = connect_to_server(port, ip_addr);
+    }
+    int sockfd = servers_info[remote_id].fd;
     if(sockfd<=0){
         //std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
         logger.warn("connect %s failed. \n", ip_addr);
@@ -297,6 +308,11 @@ void Server::remote_append_call(u_int32_t remote_id){
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (u_int8_t*)logentry.c_str(), commit_index);
     ret = send(sockfd, (void*)&rap, sizeof(rap), MSG_DONTWAIT);
+    if(ret<0){
+        servers_info[remote_id].fd = -1;
+        close(sockfd);
+        return;
+    }
     append_result_package arp;
     fd_set rfd;
     FD_ZERO(&rfd);
@@ -320,8 +336,11 @@ void Server::remote_append_call(u_int32_t remote_id){
             }
             break;
     }
-    close(sockfd);
-    if(ret == 0) return;
+    if(ret<=0){
+        servers_info[remote_id].fd = -1;
+        close(sockfd);
+        return;
+    }
     arp.tohost();
     //std::cout<<"receive a append result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<arp.term<<std::endl;
     logger.info("receive a append result package from %s current_term %d term %lld \n", ip_addr, (u_int64_t)current_term, (u_int64_t)arp.term);
