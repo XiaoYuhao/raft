@@ -24,6 +24,7 @@ const u_int8_t CANDIDATE = 0x03;
 struct server_info{
     string port;
     string ip_addr;
+    u_int32_t fd;
 };
 
 class Server{
