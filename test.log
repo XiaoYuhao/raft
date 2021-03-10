@@ -66,4 +66,108 @@
 2020_11_13_22_15_18 INFO  : receive a append result package from 111.231.146.249 current_term 2 term 2 
 2020_11_13_22_15_19 DEBUG : into remote append call.2020_11_13_22_15_19 DEBUG : into remote append call.2020_11_13_22_15_19 INFO  : receive a append result package from 47.116.133.175 current_term 2 term 2 
 2020_11_13_22_15_19 INFO  : receive a append result package from 111.231.146.249 current_term 2 term 2 
-2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 INFO  : rece
+2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 DEBUG : into remote append call.2020_11_13_22_15_20 INFO  : rece2021-03-10-15-43-55 INFO  : election timeout.
+2021-03-10-15-43-55 INFO  : receive vote result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-43-55 INFO  : server ip 111.231.146.249 vote for me. 
+2021-03-10-15-43-55 INFO  : receive vote result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-43-55 INFO  : server ip 47.116.133.175 vote for me. 
+2021-03-10-15-43-56 DEBUG : into remote append call. 
+2021-03-10-15-43-56 DEBUG : into remote append call. 
+2021-03-10-15-43-56 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-43-56 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-43-57 DEBUG : into remote append call. 
+2021-03-10-15-43-57 DEBUG : into remote append call. 
+2021-03-10-15-43-57 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-43-57 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-43-58 DEBUG : into remote append call. 
+2021-03-10-15-43-58 DEBUG : into remote append call. 
+2021-03-10-15-43-58 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-43-58 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-43-59 DEBUG : into remote append call. 
+2021-03-10-15-43-59 DEBUG : into remote append call. 
+2021-03-10-15-43-59 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-43-59 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-00 DEBUG : into remote append call. 
+2021-03-10-15-44-00 DEBUG : into remote append call. 
+2021-03-10-15-44-00 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-00 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-01 DEBUG : into remote append call. 
+2021-03-10-15-44-01 DEBUG : into remote append call. 
+2021-03-10-15-44-01 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-01 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-02 DEBUG : into remote append call. 
+2021-03-10-15-44-02 DEBUG : into remote append call. 
+2021-03-10-15-44-02 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-02 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-03 DEBUG : into remote append call. 
+2021-03-10-15-44-03 DEBUG : into remote append call. 
+2021-03-10-15-44-03 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-03 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-04 DEBUG : into remote append call. 
+2021-03-10-15-44-04 DEBUG : into remote append call. 
+2021-03-10-15-44-04 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-04 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-05 DEBUG : into remote append call. 
+2021-03-10-15-44-05 DEBUG : into remote append call. 
+2021-03-10-15-44-05 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-05 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-06 DEBUG : into remote append call. 
+2021-03-10-15-44-06 DEBUG : into remote append call. 
+2021-03-10-15-44-06 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-06 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-07 DEBUG : into remote append call. 
+2021-03-10-15-44-07 DEBUG : into remote append call. 
+2021-03-10-15-44-07 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-07 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-08 DEBUG : into remote append call. 
+2021-03-10-15-44-08 DEBUG : into remote append call. 
+2021-03-10-15-44-08 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-08 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-09 DEBUG : into remote append call. 
+2021-03-10-15-44-09 DEBUG : into remote append call. 
+2021-03-10-15-44-09 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-09 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-10 DEBUG : into remote append call. 
+2021-03-10-15-44-10 DEBUG : into remote append call. 
+2021-03-10-15-44-10 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-10 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-11 DEBUG : into remote append call. 
+2021-03-10-15-44-11 DEBUG : into remote append call. 
+2021-03-10-15-44-11 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-11 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-12 DEBUG : into remote append call. 
+2021-03-10-15-44-12 DEBUG : into remote append call. 
+2021-03-10-15-44-12 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-12 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-13 DEBUG : into remote append call. 
+2021-03-10-15-44-13 DEBUG : into remote append call. 
+2021-03-10-15-44-13 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-13 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-14 DEBUG : into remote append call. 
+2021-03-10-15-44-14 DEBUG : into remote append call. 
+2021-03-10-15-44-14 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-14 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-15 DEBUG : into remote append call. 
+2021-03-10-15-44-15 DEBUG : into remote append call. 
+2021-03-10-15-44-15 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-15 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-16 DEBUG : into remote append call. 
+2021-03-10-15-44-16 DEBUG : into remote append call. 
+2021-03-10-15-44-16 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-16 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-17 DEBUG : into remote append call. 
+2021-03-10-15-44-17 DEBUG : into remote append call. 
+2021-03-10-15-44-17 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-17 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-18 DEBUG : into remote append call. 
+2021-03-10-15-44-18 DEBUG : into remote append call. 
+2021-03-10-15-44-18 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-18 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-19 DEBUG : into remote append call. 
+2021-03-10-15-44-19 DEBUG : into remote append call. 
+2021-03-10-15-44-19 INFO  : receive a append result package from 111.231.146.249 current_term 1 term 1 
+2021-03-10-15-44-19 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-20 DEBUG : into remote append call. 
+2021-03-10-15-44-20 DEBUG : into remote append call. 
+2021-03-10-15-44-20 INFO  : receive a append result package from 47.116.133.175 current_term 1 term 1 
+2021-03-10-15-44-20 INFO  : receive a app
