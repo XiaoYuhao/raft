@@ -29,5 +29,6 @@ clean:
 	rm -fr *.o
 	rm -fr *.gch
 	rm -rf test
+	rm -rf *.log
 
 
