@@ -395,16 +395,6 @@ void Server::remote_append_call(u_int32_t remote_id){
     return;
 }
 
-void Server::work(){
-    pool.append(bind(&Server::start_server, this));        //start_server函数负责响应其它server发来的请求
-    timer.Start(timeout_val, bind(&Server::election_timeout, this));
-    //timer.Start(100, bind(&Server::request_heartbeat, this));
-    for(;;){
-        request_heartbeat();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-}
-
 void Server::client_request(){
 
 }
@@ -593,6 +583,16 @@ void Server::leader_apply_log(){
     follower_apply_log();
 }
 
+void Server::work(){
+    pool.append(bind(&Server::start_server, this));        //start_server函数负责响应其它server发来的请求
+    timer.Start(timeout_val, bind(&Server::election_timeout, this));
+    //timer.Start(100, bind(&Server::request_heartbeat, this));
+    for(;;){
+        //request_heartbeat();
+        log_append_queue.append(bind(&Server::request_heartbeat, this));        //log_append_queue是一个只有一个线程的线程池
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+}
 
 Server* Server::_instance = NULL;
 //Server* server = Server::create();
