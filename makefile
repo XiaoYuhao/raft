@@ -28,6 +28,6 @@ $(TARGET): $(OBJS) $(SOURCE)
 clean:
 	rm -fr *.o
 	rm -fr *.gch
-	rm -rf test
+	rm -fr test
 
 
