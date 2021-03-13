@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <algorithm>
 #include <time.h>
 #include "server.h"
 #include "network.h"
@@ -38,15 +39,20 @@ Server::Server(string config_file){
 
     commit_index = 0;
     last_applied = 0;
-    next_index   = 0;
-    match_index  = 0;
 
+    log_data_file.open("data.db", ios::in|ios::out);
+    load_log();
+    
     std::default_random_engine random(time(NULL));
     std::uniform_int_distribution<u_int32_t> dis1(5000,20000);
     timeout_val = dis1(random);             //随机选取一个timeout的时间，区间为150ms~300ms
     timeout_flag = true;
 
     logger.openlog("test.log");
+}
+
+Server::~Server(){
+    log_data_file.close();
 }
 
 void Server::election_timeout(){    //选举超时处理
@@ -67,6 +73,12 @@ void Server::election_timeout(){    //选举超时处理
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
     if(voted_num > server_num / 2){    //得票数超过半数，赢得选举
         state = LEADER;
+        next_index.clear();            //成为Leader后，初始化nextindex和matchindex数组
+        match_index.clear();
+        for(int i=0;i<server_num;i++){
+            next_index.push_back(max_index+1);
+            match_index.push_back(0);
+        }
     }
     voted_for = -1;
 
@@ -120,7 +132,7 @@ void Server::start_server(){
                 }
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
                     request_append_package rap;
-                    ret = recv(sockfd, (void *)&rap, sizeof(rap), MSG_DONTWAIT);
+                    ret = recv(sockfd, (void *)&rap, ntohs(header.package_length), MSG_DONTWAIT);
                     rap.tohost();
                     //std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
                     logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
@@ -129,19 +141,31 @@ void Server::start_server(){
                     if(current_term > rap.term){            //拒绝响应过期的term
                         arp.setdata(current_term, APPEND_FAIL);
                     }
-                    else if(current_term == rap.term){
-                        current_term = rap.term;
-                        timeout_flag = false;
-                        voted_for = -1;
-                        arp.setdata(current_term, APPEND_SUCCESS);
-                    }
-                    else{                                   //current_term过期，若自身为leader，则将状态转变为follower
+                    else{                                   //若current_term过期，若自身为leader，则将状态转变为follower
                         current_term = rap.term;
                         timeout_flag = false;
                         voted_for = -1;
                         state = FOLLOWER;
-                        arp.setdata(current_term, APPEND_SUCCESS);
+                        string log_entry = string(rap.log_entry);
+                        if(log_entry == "heartbeat"){       //收到的是心跳包
+                            arp.setdata(current_term, APPEND_SUCCESS);
+                        }
+                        else if(index_term.count(rap.prevlog_index)&&index_term[rap.prevlog_index]==rap.prevlog_term){
+                            //TODO 需要处理追加、覆盖等情况
+                            cover_log(rap.prevlog_index+1, max_index);
+                            max_index = rap.prevlog_index;
+                            write_log(log_entry);
+                            if(rap.leader_commit > commit_index){
+                                commit_index = std::min(rap.leader_commit, max_index);
+                            }
+                            follower_apply_log();
+                            arp.setdata(current_term, APPEND_SUCCESS);
+                        }
+                        else{
+                            arp.setdata(current_term, APPEND_FAIL);
+                        }
                     }
+                    //TODO copy log
                     ret = send(sockfd, (void *)&arp, sizeof(arp), MSG_DONTWAIT);
                 }
                 if(header.package_type == REQ_VOTE){        //收到来自candidate的vote请求包
@@ -168,6 +192,17 @@ void Server::start_server(){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
                     ret = send(sockfd, (void *)&vrp, sizeof(vrp), MSG_DONTWAIT);
+                }
+                if(header.package_type == CLIENT_SET_REQ){
+                    //TODO 重定位Leader
+                    client_set_package csp;
+                    ret = recv(sockfd, (void *)&csp, ntohs(header.package_length), MSG_DONTWAIT);
+                    string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
+                    std::cout<<"Recv client set request : "<<req<<std::endl;
+                    write_log(req);
+                }
+                if(header.package_type == CLIENT_GET_REQ){
+                    //TODO
                 }
             }
         }
@@ -307,8 +342,8 @@ void Server::remote_append_call(u_int32_t remote_id){
     int ret;
     request_append_package rap;
     string logentry = "heartbeat";
-    rap.setdata(current_term, server_id, last_applied, last_applied, (u_int8_t*)logentry.c_str(), commit_index);
-    ret = send(sockfd, (void*)&rap, sizeof(rap), MSG_DONTWAIT);
+    rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
+    ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
         close(sockfd);
@@ -369,6 +404,191 @@ void Server::work(){
     }
 }
 
+void Server::client_request(){
+
+}
+
+void Server::write_log(string log_entry){
+    log_data_file.clear();
+    log_data_file.seekp(0, std::ios_base::end);
+    max_index++;
+    u_int64_t p = log_data_file.tellp();
+    //std::cout<<p<<std::endl;
+    log_offset[max_index] = p;
+    index_term[max_index] = current_term;
+    log_data_file<<max_index<<" "<<current_term<<" "<<log_entry<<std::endl;
+    /*for(auto t : log_offset){
+        std::cout<<t.first<<" ---- "<<t.second<<std::endl;
+        log_data_file.clear();
+        log_data_file.seekg(t.second);
+        string str;
+        std::getline(log_data_file, str);
+        std::cout<<str<<std::endl;
+    }*/
+}
+
+void Server::load_log(){
+    //ifstream infile;
+    //infile.open("data.db", ios::in);
+    u_int64_t index, term;
+    string key, val, op;
+    max_index = 0;
+    log_data_file.peek();
+    while(!log_data_file.eof()){
+        u_int64_t p = log_data_file.tellg();
+        log_data_file>>index>>term>>op;
+        if(log_data_file.eof())break;
+        if(op=="SET") log_data_file>>key>>val;
+        if(op=="DEL") log_data_file>>key;
+        if(index==0) continue;
+        //offset.push_back(p);
+        log_offset[index] = p;
+        index_term[index] = term;
+        max_index = index;
+    }
+    std::cout<<"max index --- "<<max_index<<std::endl;
+    for(auto &t : log_offset){
+        std::cout<<t.first<<" ---- "<<t.second<<std::endl;
+        if(t.first!=1) t.second+=1; 
+    }
+}
+
+void Server::append_log(){
+    for(;;){
+        for(int i=0;i<servers_info.size();i++){
+            if(i==server_id) continue;
+            pool.append(std::bind(&Server::append_log_to, this, i));
+        }
+        //需要思考的问题是：append_log的时机以及apply log的时机
+    }
+    vector<thread> append_log_tasks;
+    for(int i=0;i<servers_info.size();i++){
+        
+    }
+}
+
+void Server::append_log_to(u_int32_t remote_id){
+    int port = std::stoi(servers_info[remote_id].port);
+    const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
+    if(servers_info[remote_id].fd<0){
+        servers_info[remote_id].fd = connect_to_server(port, ip_addr);
+    }
+    int sockfd = servers_info[remote_id].fd;
+    if(sockfd<=0){
+        //std::cout<<"connect "<<ip_addr<<"failed."<<std::endl;
+        logger.warn("connect %s failed. \n", ip_addr);
+        return;
+    }
+    int ret = 0;
+    while(next_index[remote_id]<=max_index){
+        request_append_package rap;
+        log_data_file.clear();
+        log_data_file.seekg(log_offset[next_index[remote_id]]);
+        string log_entry;
+        std::getline(log_data_file, log_entry);
+        request_append_package rap;
+        u_int64_t prevlog_index, prevlog_term;
+        prevlog_index = next_index[remote_id] - 1;
+        prevlog_term = prevlog_index==0 ? 0 : index_term[prevlog_index];
+        rap.setdata(current_term, server_id, prevlog_index, prevlog_term, (char*)log_entry.c_str(), commit_index);
+        ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
+        if(ret<0){
+            servers_info[remote_id].fd = -1;
+            close(sockfd);
+            return;
+        }
+        append_result_package arp;
+        fd_set rfd;
+        FD_ZERO(&rfd);
+        FD_SET(sockfd, &rfd);
+        ret = 0;
+        timeval timeout;
+        timeout.tv_sec = 2;
+        switch(select(sockfd+1, &rfd, NULL, NULL, &timeout)){
+            case -1:
+                //printf("select error.\n");
+                logger.error("select error\n");
+                break;
+            case 0:
+                //printf("select timeout.\n");
+                logger.warn("select timeout. \n");
+                break;
+            default:
+                ret = recv(sockfd, (void*)&arp, sizeof(arp), MSG_DONTWAIT);
+                if(ret == 0){
+                    //printf("server quit.\n");
+                    logger.info("server quit. \n");
+                    break;
+                }
+                break;
+        }
+        if(ret<=0){
+            servers_info[remote_id].fd = -1;
+            close(sockfd);
+            return;
+        }
+        arp.tohost();
+        if(arp.term > current_term){            //remote term > current term
+            state = FOLLOWER;
+            timeout_flag = false;
+            current_term = arp.term;
+            return;
+        }
+        else if(arp.term == current_term){      //remote term == current term
+            if(arp.success == APPEND_SUCCESS){
+                logger.info("log append success to %s. index = %d\n", ip_addr, next_index[remote_id]);
+                match_index[remote_id] = next_index[remote_id];
+                next_index[remote_id]++;
+            }
+            else{
+                logger.info("log append failed to %s. index = %d\n", ip_addr, next_index[remote_id]);
+                next_index[remote_id]--;
+            }
+        }
+
+    }
+}
+
+void Server::cover_log(u_int64_t index, u_int64_t m_index){
+    while(index <= m_index){
+        if(log_offset.count(index)==0) break;       //当前日志项中不包含index项
+        log_data_file.clear();
+        log_data_file.seekp(log_offset[index]);
+        log_data_file<<"0";                         //index置为0，表示已覆盖
+        log_offset.erase(index);
+        index_term.erase(index);
+        index++;
+    }
+}
+
+void Server::follower_apply_log(){
+    while(commit_index > last_applied){
+        last_applied++;
+        string log_entry;
+        log_data_file.clear();
+        log_data_file.seekg(log_offset[last_applied]);
+        std::getline(log_data_file, log_entry);
+        logger.info("Apply log entry to state machine. [%s]\n", log_entry.c_str());
+    }
+}
+
+void Server::leader_apply_log(){
+    u_int64_t ready_to_apply = commit_index + 1;
+    while(max_index >= ready_to_apply){
+        u_int32_t match_num = 0;
+        for(int i=0;i<server_num;i++){
+            if(match_index[i]>=ready_to_apply) match_num++;
+        }
+        if((match_num > server_num / 2)&&index_term[ready_to_apply]==current_term){
+            commit_index = ready_to_apply;
+        }
+        if(match_num < server_num / 2) break;
+        ready_to_apply++;
+    }
+    follower_apply_log();
+}
+
 
 Server* Server::_instance = NULL;
 //Server* server = Server::create();
+ 
