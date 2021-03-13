@@ -1,5 +1,6 @@
 config
-test
 client
 *.o
 *.log
+*.db
+test

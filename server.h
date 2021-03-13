@@ -3,6 +3,7 @@
 #include<cstdlib>
 #include<vector>
 #include<string>
+#include<fstream>
 #include<map>
 #include<atomic>
 #include"logger.h"
@@ -15,6 +16,9 @@ using std::atomic_bool;
 using std::atomic_uint;
 using std::atomic_ullong;
 using std::map;
+using std::ifstream;
+using std::ofstream;
+using std::fstream;
 using namespace Log;
 
 const u_int8_t LEADER    = 0x01;
@@ -47,14 +51,24 @@ class Server{
 //Volatile state on all servers
     u_int64_t commit_index;
     u_int64_t last_applied;
+    u_int64_t max_index;
+    //vector<u_int64_t> offset;
+    map<u_int64_t, u_int64_t> log_offset;
+    map<u_int64_t, u_int64_t> index_term;
+    fstream log_data_file;
 
 //Volatile state on leaders
-    u_int64_t next_index;
-    u_int64_t match_index;
+    //u_int64_t next_index;
+    //u_int64_t match_index;
+    vector<u_int64_t> next_index;       //下一条要发送给follower的日志项
+    vector<u_int64_t> match_index;      //已经成功复制到follower的日志项
+
+
 
 // 
     Timer timer;
     ThreadPool pool;
+    ThreadPool log_append_queue;
     Logger logger;
     static Server* _instance;
     Server(string config_file);
@@ -67,9 +81,18 @@ class Server{
     void send_to_servers();
     void read_config(string config_file);
     void start_server();
+    void client_request();
+    void write_log(string log_entry);
+    void load_log();
+    void append_log();
+    void append_log_to(u_int32_t remote_id);
+    void cover_log(u_int64_t index, u_int64_t m_index); //覆盖index项之后不一致的所有日志项
+    void follower_apply_log(); //follower提交已commit的日志项到状态机中去
+    void leader_apply_log(); //leader提交已commit的日志项到状态机中去
 public:
     static Server* create(string _config);
     void work();
+    ~Server();
 
     
 
