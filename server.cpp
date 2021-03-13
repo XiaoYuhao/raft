@@ -461,6 +461,10 @@ void Server::append_log(){
         }
         //需要思考的问题是：append_log的时机以及apply log的时机
     }
+    vector<thread> append_log_tasks;
+    for(int i=0;i<servers_info.size();i++){
+        
+    }
 }
 
 void Server::append_log_to(u_int32_t remote_id){
