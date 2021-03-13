@@ -424,6 +424,7 @@ void Server::load_log(){
     u_int64_t index, term;
     string key, val, op;
     max_index = 0;
+    index_term[0] = 0;
     log_data_file.peek();
     while(!log_data_file.eof()){
         u_int64_t p = log_data_file.tellg();
