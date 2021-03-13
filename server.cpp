@@ -31,7 +31,7 @@ using std::fstream;
 using std::ios;
 using std::bind;
 
-Server::Server(string config_file){
+Server::Server(string config_file):log_append_queue(1){
     read_config(config_file);
     state = FOLLOWER;   //初始状态为follower
     voted_for = -1;     //未投票
@@ -200,6 +200,7 @@ void Server::start_server(){
                     string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
                     std::cout<<"Recv client set request : "<<req<<std::endl;
                     write_log(req);
+                    log_append_queue.append(bind(&Server::append_log, this));       //log_append_queue是一只有单个线程的线程池
                 }
                 if(header.package_type == CLIENT_GET_REQ){
                     //TODO
@@ -454,17 +455,22 @@ void Server::load_log(){
 }
 
 void Server::append_log(){
-    for(;;){
+    /*for(;;){
         for(int i=0;i<servers_info.size();i++){
             if(i==server_id) continue;
             pool.append(std::bind(&Server::append_log_to, this, i));
         }
         //需要思考的问题是：append_log的时机以及apply log的时机
-    }
+    }*/
     vector<thread> append_log_tasks;
     for(int i=0;i<servers_info.size();i++){
-        
+        if(i==server_id) continue;
+        append_log_tasks.emplace_back(&Server::append_log_to, this, i);
     }
+    for(auto &thread : append_log_tasks){
+        thread.join();
+    }
+    leader_apply_log();
 }
 
 void Server::append_log_to(u_int32_t remote_id){
@@ -481,7 +487,6 @@ void Server::append_log_to(u_int32_t remote_id){
     }
     int ret = 0;
     while(next_index[remote_id]<=max_index){
-        request_append_package rap;
         log_data_file.clear();
         log_data_file.seekg(log_offset[next_index[remote_id]]);
         string log_entry;

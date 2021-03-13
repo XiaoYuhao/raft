@@ -68,6 +68,7 @@ class Server{
 // 
     Timer timer;
     ThreadPool pool;
+    ThreadPool log_append_queue;
     Logger logger;
     static Server* _instance;
     Server(string config_file);
