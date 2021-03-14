@@ -448,11 +448,16 @@ void Server::load_log(){
     log_data_file.peek();
     while(!log_data_file.eof()){
         u_int64_t p = log_data_file.tellg();
+        int flag = log_data_file.peek();
         log_data_file>>index>>term>>op;
         if(log_data_file.eof())break;
         if(op=="SET") log_data_file>>key>>val;
         if(op=="DEL") log_data_file>>key;
-        if(index==0) continue;
+        //if(index==0) continue;
+        if(flag==int('0')){
+            logger.info("jump covered log entry.\n");
+            continue;
+        }
         //offset.push_back(p);
         log_offset[index] = p;
         index_term[index] = term;
