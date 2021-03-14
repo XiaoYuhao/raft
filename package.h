@@ -3,6 +3,7 @@
 
 #include<cstdlib>
 #include<cstring>
+#include<cstddef>
 #include<arpa/inet.h>
 
 u_int64_t htonll(u_int64_t val){
@@ -102,7 +103,7 @@ struct request_append_package{
     u_int64_t leader_commit;
     //u_int8_t log_entry[128];
     u_int32_t log_len;
-    char log_entry[256];
+    char log_entry[4096];
     request_append_package(){}
     void setdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
             u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit)
@@ -117,7 +118,8 @@ struct request_append_package{
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
         //header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
-        header.package_length = htons(sizeof(request_append_package));
+        //header.package_length = htons(sizeof(request_append_package));
+        header.package_length = htons(offsetof(struct request_append_package, log_entry)+log_len);
         log_len = htonl(log_len);
     }
     void tohost(){
@@ -188,7 +190,8 @@ struct client_get_package{
         header.package_type = CLIENT_GET_REQ;
         key_len = strlen(key) + 1;
         strcpy(buf, key);
-        header.package_length = htons(sizeof(package_header)+4+key_len);
+        //header.package_length = htons(sizeof(package_header)+4+key_len);
+        header.package_length = htons(offsetof(struct client_get_package, buf)+key_len);
         key_len = htonl(key_len);
     }
 };
@@ -202,7 +205,8 @@ struct client_get_res_package{
         header.package_type = RES_CLIENT_GET;
         val_len = strlen(val) + 1;
         strcpy(buf, val);
-        header.package_length = htons(sizeof(header)+8+val_len);
+        //header.package_length = htons(sizeof(header)+8+val_len);
+        header.package_length = htons(offsetof(struct client_get_res_package, buf)+val_len);
         val_len = htonl(val_len);
     }
 };
@@ -219,7 +223,8 @@ struct client_set_package{
         val_len = strlen(val) + 1;
         strcpy(buf, key);
         strcpy(buf+key_len, val);
-        header.package_length = htons(sizeof(package_header)+8+key_len+val_len);
+        //header.package_length = htons(sizeof(package_header)+8+key_len+val_len);
+        header.package_length = htons(offsetof(struct client_set_package, buf)+key_len+val_len);
         key_len = htonl(key_len);
         val_len = htonl(val_len);
     }
