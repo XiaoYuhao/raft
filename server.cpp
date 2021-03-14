@@ -186,7 +186,7 @@ void Server::start_server(){
                     if(current_term >= rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
-                    else if(state == FOLLOWER && voted_for == -1){  //如果是follower，且之前没有给其它candidate投票
+                    else if(state == FOLLOWER && voted_for == -1 && rvp.lastlog_term >= index_term[max_index] && rvp.lastlog_index >= max_index){  //如果是follower，且之前没有给其它candidate投票，且候选者的日志比较新
                         current_term = rvp.term;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
@@ -269,7 +269,10 @@ void Server::remote_vote_call(u_int32_t remote_id){
     //std::cout<<"ip : "<<ip_addr<<" sockfd : "<<sockfd<<std::endl;
     int ret;
     request_vote_package rvp;
-    rvp.setdata(current_term, server_id, last_applied, last_applied);
+    u_int64_t lastlog_index, lastlog_term;
+    lastlog_index = max_index;
+    lastlog_term = index_term[max_index];
+    rvp.setdata(current_term, server_id, lastlog_index, lastlog_term);
     ret = send(sockfd, (void*)&rvp, sizeof(rvp), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
@@ -603,7 +606,7 @@ void Server::leader_apply_log(){
             if(i==server_id) match_num++;                       //leader必定是完成复制了的
             if(match_index[i]>=ready_to_apply) match_num++;
         }
-        if((match_num > server_num / 2)&&index_term[ready_to_apply]==current_term){
+        if((match_num > server_num / 2)&&index_term[ready_to_apply]==current_term){         //注意只能通过计数方式提交当前term的日志项
             commit_index = ready_to_apply;
         }
         if(match_num < server_num / 2) break;
