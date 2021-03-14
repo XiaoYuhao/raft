@@ -35,6 +35,7 @@ using std::bind;
 
 Server::Server(string config_file):log_append_queue(1){
     read_config(config_file);
+    logger.openlog("test.log");
     state = FOLLOWER;   //初始状态为follower
     voted_for = -1;     //未投票
     voted_num = 0;
@@ -50,7 +51,6 @@ Server::Server(string config_file):log_append_queue(1){
     timeout_val = dis1(random);             //随机选取一个timeout的时间，区间为150ms~300ms
     timeout_flag = true;
 
-    logger.openlog("test.log");
 }
 
 Server::~Server(){
@@ -442,23 +442,25 @@ void Server::load_log(){
     //ifstream infile;
     //infile.open("data.db", ios::in);
     u_int64_t index, term;
-    string key, val, op;
+    string key, val, op, sindex;
     max_index = 0;
     index_term[0] = 0;
     log_data_file.peek();
     while(!log_data_file.eof()){
         u_int64_t p = log_data_file.tellg();
-        int flag = log_data_file.peek();
-        log_data_file>>index>>term>>op;
+        log_data_file>>sindex>>term>>op;
         if(log_data_file.eof())break;
         if(op=="SET") log_data_file>>key>>val;
         if(op=="DEL") log_data_file>>key;
-        //if(index==0) continue;
-        if(flag==int('0')){
+
+        if(sindex.at(0)=='0'){
             logger.info("jump covered log entry.\n");
+            //std::cout<<"jump covered log entry."<<std::endl;
+            //std::cout<<"ok"<<std::endl;
             continue;
         }
         //offset.push_back(p);
+        index = std::stoi(sindex);
         log_offset[index] = p;
         index_term[index] = term;
         max_index = index;
