@@ -387,7 +387,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     }
     arp.tohost();
     //std::cout<<"receive a append result package from "<<ip_addr<<" current_term "<<current_term<<" term "<<arp.term<<std::endl;
-    logger.info("receive a append result package from %s current_term %d term %lld \n", ip_addr, (u_int64_t)current_term, (u_int64_t)arp.term);
+    //logger.info("receive a append result package from %s current_term %d term %lld \n", ip_addr, (u_int64_t)current_term, (u_int64_t)arp.term);
     if(arp.term > current_term){        //remote term > current term
         state = FOLLOWER;
         timeout_flag = false;
@@ -600,6 +600,7 @@ void Server::leader_apply_log(){
     while(max_index >= ready_to_apply){
         u_int32_t match_num = 0;
         for(int i=0;i<server_num;i++){
+            if(i==server_id) match_num++;                       //leader必定是完成复制了的
             if(match_index[i]>=ready_to_apply) match_num++;
         }
         if((match_num > server_num / 2)&&index_term[ready_to_apply]==current_term){
