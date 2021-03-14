@@ -18,6 +18,7 @@
 #include <sys/mman.h>
 #include <pthread.h>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <random>
 #include <algorithm>
@@ -28,6 +29,7 @@
 
 using std::string;
 using std::fstream;
+using std::istringstream;
 using std::ios;
 using std::bind;
 
@@ -148,13 +150,18 @@ void Server::start_server(){
                         state = FOLLOWER;
                         string log_entry = string(rap.log_entry);
                         if(log_entry == "heartbeat"){       //收到的是心跳包
+                            if(rap.leader_commit > commit_index){
+                                commit_index = std::min(rap.leader_commit, max_index);
+                            }
+                            follower_apply_log();
                             arp.setdata(current_term, APPEND_SUCCESS);
                         }
                         else if(index_term.count(rap.prevlog_index)&&index_term[rap.prevlog_index]==rap.prevlog_term){
                             //TODO 需要处理追加、覆盖等情况
                             cover_log(rap.prevlog_index+1, max_index);
                             max_index = rap.prevlog_index;
-                            write_log(log_entry);
+                            //write_log(log_entry);
+                            copy_log(log_entry);
                             if(rap.leader_commit > commit_index){
                                 commit_index = std::min(rap.leader_commit, max_index);
                             }
@@ -344,16 +351,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     request_append_package rap;
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
-    logger.debug("package len : %d \n", ntohs(rap.header.package_length));
-    for(int i=0;i<ntohl(rap.log_len);i++){
-        printf("%02x ", rap.log_entry[i]);
-    }
-    printf("\n");
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
-    for(int i=0;i<ntohl(rap.log_len);i++){
-        printf("%02x ", rap.log_entry[i]);
-    }
-    printf("\n");
     if(ret<0){
         servers_info[remote_id].fd = -1;
         close(sockfd);
@@ -425,6 +423,19 @@ void Server::write_log(string log_entry){
         std::getline(log_data_file, str);
         std::cout<<str<<std::endl;
     }*/
+}
+
+void Server::copy_log(string log_entry){
+    istringstream iss(log_entry);
+    u_int64_t _index, _term;
+    iss>>_index>>_term;
+    max_index = _index;
+    log_data_file.clear();
+    log_data_file.seekp(0, std::ios_base::end);
+    u_int64_t p = log_data_file.tellp();
+    log_offset[max_index] = p;
+    index_term[max_index] = _term;
+    log_data_file<<log_entry<<std::endl;
 }
 
 void Server::load_log(){

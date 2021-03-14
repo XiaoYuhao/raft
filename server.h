@@ -89,6 +89,7 @@ class Server{
     void cover_log(u_int64_t index, u_int64_t m_index); //覆盖index项之后不一致的所有日志项
     void follower_apply_log(); //follower提交已commit的日志项到状态机中去
     void leader_apply_log(); //leader提交已commit的日志项到状态机中去
+    void copy_log(string log_entry); //将从leader复制过来的日志项写入日志文件中
 public:
     static Server* create(string _config);
     void work();
