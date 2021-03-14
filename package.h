@@ -118,7 +118,7 @@ struct request_append_package{
         log_len = strlen(_log_entry) + 1;
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
-        header.package_length = htons(sizeof(header)+8+4+8+8+8+4+log_len);
+        header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
         log_len = htonl(log_len);
     }
     void tohost(){

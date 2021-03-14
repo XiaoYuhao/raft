@@ -147,6 +147,7 @@ void Server::start_server(){
                         voted_for = -1;
                         state = FOLLOWER;
                         string log_entry = string(rap.log_entry);
+                        logger.debug("append log : %s \n", rap.log_entry);
                         if(log_entry == "heartbeat"){       //收到的是心跳包
                             arp.setdata(current_term, APPEND_SUCCESS);
                         }
@@ -344,6 +345,7 @@ void Server::remote_append_call(u_int32_t remote_id){
     request_append_package rap;
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
+    logger.debug("entry : %s \n", rap.log_entry);
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
