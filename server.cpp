@@ -358,6 +358,10 @@ void Server::remote_append_call(u_int32_t remote_id){
     }
     printf("\n");
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
+    for(int i=0;i<ntohl(rap.log_len);i++){
+        printf("%02x ", rap.log_entry[i]);
+    }
+    printf("\n");
     if(ret<0){
         servers_info[remote_id].fd = -1;
         close(sockfd);

@@ -102,24 +102,22 @@ struct request_append_package{
     u_int64_t leader_commit;
     //u_int8_t log_entry[128];
     u_int32_t log_len;
-    char log_entry[4096];
+    char log_entry[256];
     request_append_package(){}
     void setdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
             u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit)
     {
         header.package_type = REQ_APPEND;
         header.package_seq = 0;
-        //header.package_length = htons(sizeof(request_append_package));
         term = htonll(_term);
         leader_id = htonl(_leader_id);
         prevlog_index = htonll(_prevlog_index);
         prevlog_term = htonll(_prevlog_term);
-        //memcpy(log_entry, _log_entry, sizeof(log_entry));
         log_len = strlen(_log_entry) + 1;
-        //log_entry[log_len-1] = '\0';
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
-        header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
+        //header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
+        header.package_length = htons(sizeof(request_append_package));
         log_len = htonl(log_len);
     }
     void tohost(){
