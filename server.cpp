@@ -133,7 +133,6 @@ void Server::start_server(){
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
                     request_append_package rap;
                     ret = recv(sockfd, (void *)&rap, ntohs(header.package_length), MSG_DONTWAIT);
-                    logger.debug("actually recv len : %d \n", ret);
                     rap.tohost();
                     //std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
                     logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
@@ -147,14 +146,7 @@ void Server::start_server(){
                         timeout_flag = false;
                         voted_for = -1;
                         state = FOLLOWER;
-                        string log_entry = "heartbeat";
-                        logger.debug("log entry len : %d \n", rap.log_len);
-                        for(int i=0;i<rap.log_len;i++){
-                            //logger.debug("%02x ", rap.log_entry[i]);
-                            printf("%02x ", rap.log_entry[i]);
-                        }
-                        printf("\n");
-                        //logger.debug("\n");
+                        string log_entry = string(rap.log_entry);
                         if(log_entry == "heartbeat"){       //收到的是心跳包
                             arp.setdata(current_term, APPEND_SUCCESS);
                         }
