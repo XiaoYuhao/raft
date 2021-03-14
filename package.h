@@ -116,6 +116,7 @@ struct request_append_package{
         prevlog_term = htonll(_prevlog_term);
         //memcpy(log_entry, _log_entry, sizeof(log_entry));
         log_len = strlen(_log_entry) + 1;
+        //log_entry[log_len-1] = '\0';
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
         header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
