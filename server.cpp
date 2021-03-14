@@ -137,7 +137,7 @@ void Server::start_server(){
                     ret = recv(sockfd, (void *)&rap, ntohs(header.package_length), MSG_DONTWAIT);
                     rap.tohost();
                     //std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
-                    logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
+                    //logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
                     //TODO
                     append_result_package arp;
                     if(current_term > rap.term){            //拒绝响应过期的term
@@ -180,7 +180,7 @@ void Server::start_server(){
                     ret = recv(sockfd, (void *)&rvp, sizeof(rvp), MSG_DONTWAIT);
                     rvp.tohost();
                     //std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
-                    logger.debug("receive a request vote package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rvp.term);
+                    //logger.debug("receive a request vote package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rvp.term);
                     //TODO
                     vote_result_package vrp;
                     if(current_term >= rvp.term){
@@ -334,7 +334,7 @@ void Server::request_heartbeat(){
 
 void Server::remote_append_call(u_int32_t remote_id){
     //std::cout<<"into remote append call."<<std::endl;
-    logger.debug("into remote append call. \n");
+    //logger.debug("into remote append call. \n");
     int port = std::stoi(servers_info[remote_id].port);
     const char *ip_addr = servers_info[remote_id].ip_addr.c_str();
     if(servers_info[remote_id].fd<0){
