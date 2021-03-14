@@ -133,6 +133,7 @@ void Server::start_server(){
                 if(header.package_type == REQ_APPEND){      //收到来自leader的append entry请求或者心跳包
                     request_append_package rap;
                     ret = recv(sockfd, (void *)&rap, ntohs(header.package_length), MSG_DONTWAIT);
+                    logger.debug("actually recv len : %d \n", ret);
                     rap.tohost();
                     //std::cout<<"receive a request append package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rap.term<<std::endl;
                     logger.debug("receive a request append package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rap.term);
@@ -146,8 +147,14 @@ void Server::start_server(){
                         timeout_flag = false;
                         voted_for = -1;
                         state = FOLLOWER;
-                        string log_entry = string(rap.log_entry);
-                        logger.debug("package len : %d \n", rap.header.package_length);
+                        string log_entry = "heartbeat";
+                        logger.debug("log entry len : %d \n", rap.log_len);
+                        for(int i=0;i<rap.log_len;i++){
+                            //logger.debug("%02x ", rap.log_entry[i]);
+                            printf("%02x ", rap.log_entry[i]);
+                        }
+                        printf("\n");
+                        //logger.debug("\n");
                         if(log_entry == "heartbeat"){       //收到的是心跳包
                             arp.setdata(current_term, APPEND_SUCCESS);
                         }
@@ -346,6 +353,10 @@ void Server::remote_append_call(u_int32_t remote_id){
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
     logger.debug("package len : %d \n", ntohs(rap.header.package_length));
+    for(int i=0;i<ntohl(rap.log_len);i++){
+        printf("%02x ", rap.log_entry[i]);
+    }
+    printf("\n");
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
