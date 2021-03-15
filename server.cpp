@@ -148,6 +148,7 @@ void Server::start_server(){
                         timeout_flag = false;
                         voted_for = -1;
                         state = FOLLOWER;
+                        leader_id = rap.leader_id;
                         string log_entry = string(rap.log_entry);
                         if(log_entry == "heartbeat"){       //收到的是心跳包
                             if(rap.leader_commit > commit_index){
@@ -157,7 +158,7 @@ void Server::start_server(){
                             arp.setdata(current_term, APPEND_SUCCESS);
                         }
                         else if(index_term.count(rap.prevlog_index)&&index_term[rap.prevlog_index]==rap.prevlog_term){
-                            //TODO 需要处理追加、覆盖等情况
+                            //需要处理追加、覆盖等情况
                             cover_log(rap.prevlog_index+1, max_index);
                             max_index = rap.prevlog_index;
                             //write_log(log_entry);
@@ -172,7 +173,6 @@ void Server::start_server(){
                             arp.setdata(current_term, APPEND_FAIL);
                         }
                     }
-                    //TODO copy log
                     ret = send(sockfd, (void *)&arp, sizeof(arp), MSG_DONTWAIT);
                 }
                 if(header.package_type == REQ_VOTE){        //收到来自candidate的vote请求包
@@ -201,16 +201,27 @@ void Server::start_server(){
                     ret = send(sockfd, (void *)&vrp, sizeof(vrp), MSG_DONTWAIT);
                 }
                 if(header.package_type == CLIENT_SET_REQ){
-                    //TODO 重定位Leader
                     client_set_package csp;
                     ret = recv(sockfd, (void *)&csp, ntohs(header.package_length), MSG_DONTWAIT);
-                    string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
-                    std::cout<<"Recv client set request : "<<req<<std::endl;
-                    write_log(req);
-                    log_append_queue.append(bind(&Server::append_log, this));       //log_append_queue是一只有单个线程的线程池
+                    //TODO 重定位Leader
+                    if(state!=LEADER){
+                        client_set_res_package csrp;
+                        csrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
+                        ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
+                        logger.info("Redirect client to current leader.\n");
+                    }
+                    else{
+                        string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
+                        //std::cout<<"Recv client set request : "<<req<<std::endl;
+                        logger.info("Recv client set request : %s\n", req.c_str());
+                        write_log(req);
+                        log_append_queue.append(bind(&Server::append_log, this, max_index, sockfd));       //log_append_queue是一只有单个线程的线程池
+                    }
                 }
                 if(header.package_type == CLIENT_GET_REQ){
                     //TODO
+                    client_get_res_package cgrp;
+
                 }
             }
         }
@@ -350,7 +361,13 @@ void Server::remote_append_call(u_int32_t remote_id){
         return;
     }
 
-    int ret;
+    int ret = 0;
+
+    do{
+        char buf[1024];
+        ret = recv(sockfd, (void*)buf, sizeof(buf), MSG_DONTWAIT);
+    }while(ret>0); //首先接收完socket缓存区中的数据，可能是上一次请求的回复（因为超时未接收）
+
     request_append_package rap;
     string logentry = "heartbeat";
     rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
@@ -365,7 +382,9 @@ void Server::remote_append_call(u_int32_t remote_id){
     FD_ZERO(&rfd);
     FD_SET(sockfd, &rfd);
     ret = 0;
-    switch(select(sockfd+1, &rfd, NULL, NULL, NULL)){
+    timeval timeout;
+    timeout.tv_sec = 2;
+    switch(select(sockfd+1, &rfd, NULL, NULL, &timeout)){
         case -1:
             //printf("select error.\n");
             logger.error("select error\n");
@@ -475,7 +494,7 @@ void Server::load_log(){
     }
 }
 
-void Server::append_log(){
+void Server::append_log(u_int64_t log_index, int sockfd){
     /*for(;;){
         for(int i=0;i<servers_info.size();i++){
             if(i==server_id) continue;
@@ -492,6 +511,15 @@ void Server::append_log(){
         thread.join();
     }
     leader_apply_log();
+    client_set_res_package csrp;
+    if(last_applied >= log_index){
+        csrp.setdata(RES_SUCCESS, "0.0.0.0", 11234);
+    }
+    else{
+        csrp.setdata(RES_FAIL, "0.0.0.0", 11234);
+    }
+    int ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
+    if(ret<0) close(sockfd);
 }
 
 void Server::append_log_to(u_int32_t remote_id){
@@ -507,6 +535,12 @@ void Server::append_log_to(u_int32_t remote_id){
         return;
     }
     int ret = 0;
+
+    do{
+        char buf[1024];
+        ret = recv(sockfd, (void*)buf, sizeof(buf), MSG_DONTWAIT);
+    }while(ret>0); //首先接收完socket缓存区中的数据，可能是上一次请求的回复（因为超时未接收）
+
     while(next_index[remote_id]<=max_index){
         log_data_file.clear();
         log_data_file.seekg(log_offset[next_index[remote_id]]);
@@ -530,7 +564,7 @@ void Server::append_log_to(u_int32_t remote_id){
         ret = 0;
         timeval timeout;
         timeout.tv_sec = 2;
-        switch(select(sockfd+1, &rfd, NULL, NULL, &timeout)){
+        switch(select(sockfd+1, &rfd, NULL, NULL, &timeout)){           //设置超时时间2sec
             case -1:
                 //printf("select error.\n");
                 logger.error("select error\n");

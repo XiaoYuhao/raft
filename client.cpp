@@ -20,6 +20,36 @@
 
 using namespace std;
 
+char server_ip[64] = "111.231.146.249";
+int port = 11234;
+
+void db_set(const char *key, const char *val){
+    while(1){
+        int sockfd = connect_to_server(port, server_ip);
+        client_set_package csp(key, val);
+        int ret = send(sockfd, (void*)&csp, ntohs(csp.header.package_length), 0);
+        client_set_res_package csrp;
+        ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
+        csrp.tohost();
+        if(csrp.status==RES_SUCCESS){
+            cout<<"Set key value successfully."<<endl;
+            close(sockfd);
+            break;
+        }
+        if(csrp.status==RES_FAIL){
+            cout<<"Set key value failed."<<endl;
+            close(sockfd);
+            break;
+        }
+        if(csrp.status==RES_REDIRECT){
+            port = csrp.port;
+            strcpy(server_ip, csrp.ip_addr);
+            cout<<"Redirect to current leader "<<server_ip<<" : "<<port<<endl;
+        }
+    }
+    return;
+}
+
 int main(int argc, char *argv[]){
     if(argc<=1){
         printf("please input correct params!\n");

@@ -34,6 +34,7 @@ const u_int8_t APPEND_FAIL          = 0x00;
 
 const u_int8_t RES_SUCCESS          = 0x01;
 const u_int8_t RES_FAIL             = 0x00;
+const u_int8_t RES_REDIRECT         = 0x02;
 
 const u_int8_t CLIENT_GET_REQ       = 0x31;
 const u_int8_t CLIENT_SET_REQ       = 0x32;
@@ -233,11 +234,19 @@ struct client_set_package{
 struct client_set_res_package{
     package_header header;
     u_int8_t status;
+    char ip_addr[64];
+    u_int32_t port;
     client_set_res_package(){}
-    client_set_res_package(u_int8_t st){
+    void setdata(u_int8_t st, const char *_ip, u_int32_t _port){
         header.package_type = RES_CLIENT_SET;
         header.package_length = htons(sizeof(client_set_res_package));
+        strcpy(ip_addr, _ip);
+        port = htonl(_port);
         status = st;
+    }
+    void tohost(){
+        header.package_length = ntohs(header.package_length);
+        port = ntohl(port);
     }
 };
 

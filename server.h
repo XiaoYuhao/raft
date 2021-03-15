@@ -45,6 +45,7 @@ class Server{
     atomic_ullong current_term;
     atomic_uint voted_for;
     vector<u_int32_t> log;
+    u_int32_t leader_id;
 
     atomic_uint voted_num;
 
@@ -84,7 +85,7 @@ class Server{
     void client_request();
     void write_log(string log_entry);
     void load_log();
-    void append_log();
+    void append_log(u_int64_t log_index, int sockfd);
     void append_log_to(u_int32_t remote_id);
     void cover_log(u_int64_t index, u_int64_t m_index); //覆盖index项之后不一致的所有日志项
     void follower_apply_log(); //follower提交已commit的日志项到状态机中去
