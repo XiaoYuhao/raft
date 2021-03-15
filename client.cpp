@@ -15,22 +15,40 @@
 #include <sys/time.h>
 #include <random>
 #include <iostream>
-#include "network.h"
 #include "package.h"
 
 using namespace std;
+
+int connect_to_server(const char *ip_addr, const int port){
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server;
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+    server.sin_addr.s_addr = inet_addr(ip_addr);
+    socklen_t len = sizeof(sockaddr_in);
+
+    int ret = 0;
+    ret = connect(sockfd, (sockaddr*)&server, len);
+    if(ret<0){
+        printf("connect server failed...\n");
+        return -1;
+    }
+    return sockfd;
+}
 
 char server_ip[64] = "121.36.79.105";
 int port = 11234;
 
 void db_set(const char *key, const char *val){
     while(1){
-        int sockfd = connect_to_server(port, server_ip);
+        int sockfd = connect_to_server(server_ip, port);
         client_set_package csp(key, val);
         int ret = send(sockfd, (void*)&csp, ntohs(csp.header.package_length), 0);
         client_set_res_package csrp;
         ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_WAITALL);
-        //csrp.tohost();
+        printf("size = %d ret = %d\n", sizeof(csrp), ret);
+        
+        csrp.tohost();
         //cout<<csrp.header.package_type<<" "<<csrp.header.package_length<<" "<<csrp.status<<" "<<csrp.ip_addr<<endl;
         char buf[512];
         memcpy(buf, (void*)&csrp, sizeof(csrp));
@@ -61,10 +79,6 @@ int main(int argc, char *argv[]){
     if(argc<=1){
         printf("please input correct params!\n");
         return 0;
-    }
-    int sockfd = connect_to_server(11234, "0.0.0.0");
-    if(sockfd<=0){
-        cout<<"connect failed."<<endl;
     }
     if(!strcmp(argv[1], "set")&&argc==4){
         db_set(argv[2], argv[3]);

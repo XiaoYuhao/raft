@@ -47,7 +47,7 @@ Server::Server(string config_file):log_append_queue(1){
     load_log();
     
     std::default_random_engine random(time(NULL));
-    std::uniform_int_distribution<u_int32_t> dis1(5000,20000);
+    std::uniform_int_distribution<u_int32_t> dis1(2500,6000);
     timeout_val = dis1(random);             //随机选取一个timeout的时间，区间为150ms~300ms
     timeout_flag = true;
 
@@ -180,14 +180,15 @@ void Server::start_server(){
                     ret = recv(sockfd, (void *)&rvp, sizeof(rvp), MSG_DONTWAIT);
                     rvp.tohost();
                     //std::cout<<"receive a request vote package from "<<sockfd_ip[sockfd]<<" current_term "<<current_term<<" term "<<rvp.term<<std::endl;
-                    //logger.debug("receive a request vote package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rvp.term);
+                    logger.debug("receive a request vote package from %s current_term %d term %d \n", sockfd_ip[sockfd].c_str(), (u_int64_t)current_term, (u_int64_t)rvp.term);
                     //TODO
                     vote_result_package vrp;
                     if(current_term >= rvp.term){
                         vrp.setdata(current_term, VOTE_GRANT_FALSE);
                     }
-                    else if(state == FOLLOWER && voted_for == -1 && rvp.lastlog_term >= index_term[max_index] && rvp.lastlog_index >= max_index){  //如果是follower，且之前没有给其它candidate投票，且候选者的日志比较新
+                    else if(((state == FOLLOWER && voted_for == -1)||state == CANDIDATE) && rvp.lastlog_term >= index_term[max_index] && rvp.lastlog_index >= max_index){  //如果是follower，且之前没有给其它candidate投票，且候选者的日志比较新
                         current_term = rvp.term;
+                        state == FOLLOWER;
                         voted_for = rvp.candidate_id;
                         vrp.setdata(current_term, VOTE_GRANT_TRUE);
                         //std::cout<<"vote for "<<voted_for<<std::endl;
