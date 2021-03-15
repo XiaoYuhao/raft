@@ -20,7 +20,7 @@
 
 using namespace std;
 
-char server_ip[64] = "111.231.146.249";
+char server_ip[64] = "121.36.79.105";
 int port = 11234;
 
 void db_set(const char *key, const char *val){
@@ -29,9 +29,15 @@ void db_set(const char *key, const char *val){
         client_set_package csp(key, val);
         int ret = send(sockfd, (void*)&csp, ntohs(csp.header.package_length), 0);
         client_set_res_package csrp;
-        ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
-        csrp.tohost();
-        cout<<csrp.status<<" "<<csrp.ip_addr<<" "<<csrp.port<<endl;
+        ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_WAITALL);
+        //csrp.tohost();
+        //cout<<csrp.header.package_type<<" "<<csrp.header.package_length<<" "<<csrp.status<<" "<<csrp.ip_addr<<endl;
+        char buf[512];
+        memcpy(buf, (void*)&csrp, sizeof(csrp));
+        for(int i=0;i<sizeof(csrp);i++){
+            printf("%02x ", buf[i]);
+        }
+        printf("\n");
         if(csrp.status==RES_SUCCESS){
             cout<<"Set key value successfully."<<endl;
             close(sockfd);

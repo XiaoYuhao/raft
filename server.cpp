@@ -209,6 +209,12 @@ void Server::start_server(){
                         csrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
                         ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
                         logger.info("Redirect [status:%d] client to current leader %s : %d.\n", csrp.status, csrp.ip_addr, ntohl(csrp.port));
+                        char buf[512];
+                        memcpy(buf, (void*)&csrp, sizeof(csrp));
+                        for(int i=0;i<sizeof(csrp);i++){
+                            printf("%02x ", buf[i]);
+                        }
+                        printf("\n");
                     }
                     else{
                         string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
