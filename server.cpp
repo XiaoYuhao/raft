@@ -221,7 +221,8 @@ void Server::start_server(){
                     else{
                         string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
                         //std::cout<<"Recv client set request : "<<req<<std::endl;
-                        logger.info("Recv client set request : %s\n", req.c_str());
+                        char bugfree[128] = "what is the bug?"; //vpfrint有未知bug，设置buf避免segmentfault
+                        logger.info("Recv client set request [%s].\n", req.c_str());
                         write_log(req);
                         log_append_queue.append(bind(&Server::append_log, this, max_index, sockfd));       //log_append_queue是一只有单个线程的线程池
                     }
@@ -441,7 +442,6 @@ void Server::write_log(string log_entry){
     log_data_file.seekp(0, std::ios_base::end);
     max_index++;
     u_int64_t p = log_data_file.tellp();
-    //std::cout<<p<<std::endl;
     log_offset[max_index] = p;
     index_term[max_index] = current_term;
     log_data_file<<max_index<<" "<<current_term<<" "<<log_entry<<std::endl;

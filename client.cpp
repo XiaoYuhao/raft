@@ -36,7 +36,7 @@ int connect_to_server(const char *ip_addr, const int port){
     return sockfd;
 }
 
-char server_ip[64] = "121.36.79.105";
+char server_ip[64] = "0.0.0.0";
 int port = 11234;
 
 void db_set(const char *key, const char *val){

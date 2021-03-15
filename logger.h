@@ -36,7 +36,11 @@ public:
     int openlog(const char *_log_name, int _mode = CONSOLE){
         logflag = _mode;
         log_file = fopen(_log_name, "a");
-        if(log_file)return 1;
+        if(log_file){
+            printf("open log file successfully.\n");
+            return 1;
+        }
+        printf("open log file failed.\n");
         return 0;
     }
 
@@ -52,6 +56,8 @@ public:
         }
         fprintf(log_file, "%s INFO  : ", current_time);
         int ret = vfprintf(log_file, format, argp);
+        va_end(argp);
+        fflush(log_file);
         return ret;
     }
     int debug(const char *format, ...){
@@ -66,6 +72,8 @@ public:
         }
         fprintf(log_file, "%s DEBUG : ", current_time);
         int ret = vfprintf(log_file, format, argp);
+        va_end(argp);
+        fflush(log_file);
         return ret;
     }
     int error(const char *format, ...){
@@ -80,6 +88,8 @@ public:
         }
         fprintf(log_file, "%s ERROR : ", current_time);
         int ret = vfprintf(log_file, format, argp);
+        va_end(argp);
+        fflush(log_file);
         return ret;
     }
     int warn(const char *format, ...){
@@ -94,6 +104,8 @@ public:
         }
         fprintf(log_file, "%s WARN  : ", current_time);
         int ret = vfprintf(log_file, format, argp);
+        va_end(argp);
+        fflush(log_file);
         return ret;
     }
     /*template<class type> Logger & operator << (type val){
