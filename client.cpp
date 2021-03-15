@@ -31,6 +31,7 @@ void db_set(const char *key, const char *val){
         client_set_res_package csrp;
         ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
         csrp.tohost();
+        cout<<csrp.status<<" "<<csrp.ip_addr<<" "<<csrp.port<<endl;
         if(csrp.status==RES_SUCCESS){
             cout<<"Set key value successfully."<<endl;
             close(sockfd);
@@ -60,10 +61,7 @@ int main(int argc, char *argv[]){
         cout<<"connect failed."<<endl;
     }
     if(!strcmp(argv[1], "set")&&argc==4){
-        client_set_package csp(argv[2], argv[3]);
-        int ret = send(sockfd, (void*)&csp, ntohs(csp.header.package_length), 0);
-        client_set_res_package csrp;
-        ret = recv(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
+        db_set(argv[2], argv[3]);
         return 0;
     }
     else if(!strcmp(argv[1], "get")&&argc==3){

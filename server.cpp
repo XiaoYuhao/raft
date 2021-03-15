@@ -208,7 +208,7 @@ void Server::start_server(){
                         client_set_res_package csrp;
                         csrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
                         ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
-                        logger.info("Redirect client to current leader.\n");
+                        logger.info("Redirect [status:%d] client to current leader %s : %d.\n", csrp.status, csrp.ip_addr, ntohl(csrp.port));
                     }
                     else{
                         string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
