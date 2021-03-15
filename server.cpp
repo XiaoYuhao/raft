@@ -208,6 +208,7 @@ void Server::start_server(){
                         client_set_res_package csrp;
                         csrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
                         ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
+                        printf("size = %d ret = %d\n", sizeof(csrp), ret);
                         logger.info("Redirect [status:%d] client to current leader %s : %d.\n", csrp.status, csrp.ip_addr, ntohl(csrp.port));
                         char buf[512];
                         memcpy(buf, (void*)&csrp, sizeof(csrp));
