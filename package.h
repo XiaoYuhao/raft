@@ -103,11 +103,12 @@ struct request_append_package{
     u_int64_t prevlog_term;
     u_int64_t leader_commit;
     //u_int8_t log_entry[128];
+    u_int64_t all_match_index;
     u_int32_t log_len;
     char log_entry[4096];
     request_append_package(){}
     void setdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
-            u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit)
+            u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit, u_int64_t _all_match_index)
     {
         header.package_type = REQ_APPEND;
         header.package_seq = 0;
@@ -118,6 +119,7 @@ struct request_append_package{
         log_len = strlen(_log_entry) + 1;
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
+        all_match_index = htonll(_all_match_index);
         //header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
         //header.package_length = htons(sizeof(request_append_package));
         header.package_length = htons(offsetof(struct request_append_package, log_entry)+log_len);
@@ -131,6 +133,7 @@ struct request_append_package{
         prevlog_term = ntohll(prevlog_term);
         leader_commit = ntohll(leader_commit);
         log_len = ntohl(log_len);
+        all_match_index = ntohll(all_match_index);
     }
 };
 

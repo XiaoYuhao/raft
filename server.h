@@ -64,8 +64,8 @@ class Server{
     //u_int64_t match_index;
     vector<u_int64_t> next_index;       //下一条要发送给follower的日志项
     vector<u_int64_t> match_index;      //已经成功复制到follower的日志项
-
-
+    u_int64_t all_match_index;          //所有从节点都已复制完成的日志项，用于确定可压缩的日志项       
+    u_int64_t compress_index;           //在此index之前的所有日志项可被压缩
 
 // 
     Timer timer;

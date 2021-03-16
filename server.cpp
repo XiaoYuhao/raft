@@ -44,6 +44,7 @@ Server::Server(string config_file):log_append_queue(1){
 
     commit_index = 0;
     //last_applied = 0;
+    compress_index = 0;
 
     log_data_file.open("data.db", ios::in|ios::out);
     load_log();
@@ -154,6 +155,7 @@ void Server::start_server(){
                         voted_for = -1;
                         state = FOLLOWER;
                         leader_id = rap.leader_id;
+                        all_match_index = rap.all_match_index;
                         string log_entry = string(rap.log_entry);
                         if(log_entry == "heartbeat"){       //收到的是心跳包
                             if(rap.leader_commit > commit_index){
@@ -408,7 +410,7 @@ void Server::remote_append_call(u_int32_t remote_id){
 
     request_append_package rap;
     string logentry = "heartbeat";
-    rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index);
+    rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index, all_match_index);
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
@@ -588,7 +590,7 @@ void Server::append_log_to(u_int32_t remote_id){
         u_int64_t prevlog_index, prevlog_term;
         prevlog_index = next_index[remote_id] - 1;
         prevlog_term = prevlog_index==0 ? 0 : index_term[prevlog_index];
-        rap.setdata(current_term, server_id, prevlog_index, prevlog_term, (char*)log_entry.c_str(), commit_index);
+        rap.setdata(current_term, server_id, prevlog_index, prevlog_term, (char*)log_entry.c_str(), commit_index, all_match_index);
         ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
         if(ret<0){
             servers_info[remote_id].fd = -1;
@@ -668,6 +670,10 @@ void Server::leader_apply_log(){
             if(match_index[i]>=ready_to_apply) match_num++;
         }
         if((match_num > server_num / 2)&&index_term[ready_to_apply]==current_term){         //注意只能通过计数方式提交当前term的日志项
+            if(match_num == server_num) {
+                all_match_index = ready_to_apply;
+                logger.info("Index %d log entry has copy to all server.\n", all_match_index);
+            }
             commit_index = ready_to_apply;
         }
         if(match_num < server_num / 2) break;
@@ -678,7 +684,7 @@ void Server::leader_apply_log(){
 
 void Server::follower_apply_log(){
     Status status;
-    u_int64_t compress_index = 0;
+    //u_int64_t compress_index = 0;
     while(commit_index > last_applied){
         last_applied++;
         string log_entry;
@@ -696,7 +702,10 @@ void Server::follower_apply_log(){
             if(status == SET_SPILL) compress_index = _index;
         } 
     }
-    if(compress_index>1) clean_log(compress_index-1);
+    if(compress_index>1&&all_match_index>=compress_index) { //复制到所有节点的日志项才能被压缩
+        clean_log(compress_index-1);
+        compress_index = 0;
+    }
 }
 
 void Server::clean_log(u_int64_t log_index){
