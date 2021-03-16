@@ -36,12 +36,20 @@ int connect_to_server(const char *ip_addr, const int port){
     return sockfd;
 }
 
+const char *ip_list[3] = {"111.231.146.249", "47.116.133.175", "121.36.79.105"};
 char server_ip[64] = "47.116.133.175";
 int port = 11234;
 
 void db_set(const char *key, const char *val){
     while(1){
         int sockfd = connect_to_server(server_ip, port);
+        if(sockfd<0){
+            for(int i=0;i<3;i++){
+                sockfd = connect_to_server(ip_list[i], port);
+                if(sockfd>0) break;
+            }
+            if(sockfd<0) return;
+        }
         client_set_package csp(key, val);
         int ret = send(sockfd, (void*)&csp, ntohs(csp.header.package_length), 0);
         client_set_res_package csrp;
@@ -78,6 +86,13 @@ void db_set(const char *key, const char *val){
 void db_get(const char *key){
     while(1){
         int sockfd = connect_to_server(server_ip, port);
+        if(sockfd<0){
+            for(int i=0;i<3;i++){
+                sockfd = connect_to_server(ip_list[i], port);
+                if(sockfd>0) break;
+            }
+            if(sockfd<0) return;
+        }
         client_get_package cgp(key);
         int ret = send(sockfd, (void*)&cgp, ntohs(cgp.header.package_length), 0);
         package_header header;

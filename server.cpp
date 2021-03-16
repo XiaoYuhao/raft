@@ -248,8 +248,11 @@ void Server::start_server(){
                         string val = database->db_get(key);
                         //char bugfree[128] = "what is the bug?"; //vpfrint有未知bug，设置buf避免segmentfault
                         //logger.info("Recv client get request [GET %s] RES = %s.\n", cgp.buf, val.c_str());
+                        std::cout<<"Recv client get request GET "<<cgp.buf<<" Res = "<<val<<std::endl;
                         cgrp.setdata(RES_SUCCESS, val.c_str(), 0);
+                        std::cout<<"A ";
                         ret = send(sockfd, (void*)&cgrp, ntohs(cgrp.header.package_length), MSG_DONTWAIT);
+                        std::cout<<"B "<<std::endl;
                     }
 
                 }
