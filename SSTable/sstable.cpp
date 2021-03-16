@@ -29,16 +29,20 @@ SSTable::SSTable(){
     //崩溃恢复
     std::string key, val;
     int count = 0;
-    long p = 0;
+    long p = 0, lastp;
     infile_old.peek();
     while(!infile_old.eof()){
+        lastp = p;
         p = infile_old.tellg();
         infile_old>>key>>val;
+        if(infile_old.eof()) break;
         if(count!=0) p = p+1;
         if(count%SPARSE_INTERVAL==0){
             old_sstable[key] = p;
         }
+        count++;
     }
+    old_sstable[key] = lastp - 1;   //使用lower_upper寻找，需要记录最后一个key
     infile_old.clear();
     infile_old.seekg(0);
 }
@@ -77,13 +81,13 @@ std::string SSTable::db_get(std::string key){
         return iter->second;
     }
     else{
+        for(auto t : old_sstable){
+            std::cout<<t.first<<" - "<<t.second<<std::endl;
+        }
         long p;
         std::string k, v;
-        std::cout<<"????"<<std::endl;
         std::map<std::string, long>::iterator it;
         it = old_sstable.lower_bound(key);
-        std::cout<<"!!!!"<<std::endl;
-        std::cout<<it->first<<" - "<<it->second<<std::endl;
         if(it->first==key){
             p = it->second;
         }
@@ -94,12 +98,11 @@ std::string SSTable::db_get(std::string key){
             it--;
             p = it->second;
         }
-        std::cout<<"Index : "<<it->first<<" Peek : "<<p<<std::endl;
+        //std::cout<<"Index : "<<it->first<<" Peek : "<<p<<std::endl;
         infile_old.clear();
         infile_old.seekg(p);
         while(!infile_old.eof()){
             infile_old>>k>>v;
-            std::cout<<k<<" - "<<v<<std::endl;
             if(k==key) return v;
         }
         return "None";
@@ -117,7 +120,7 @@ void SSTable::compress_merge(){
     outfile.open("tmp_old.db", std::ios::out|std::ios::app);
     old_sstable.clear();
     
-    std::string key, val;
+    std::string key, val, last_key;
     int count = 0;
     long p = 0;
     iter = sstable.begin();
@@ -137,6 +140,7 @@ void SSTable::compress_merge(){
             if(count%SPARSE_INTERVAL==0){
                 old_sstable[key] = p;
             }
+            last_key = key;
             infile>>key>>val;
         }
         else{
@@ -147,6 +151,7 @@ void SSTable::compress_merge(){
             }
             if(key==iter->first){
                 //if(infile.eof())break;
+                //last_key = key;
                 infile>>key>>val;
             }
             iter++;
@@ -156,8 +161,10 @@ void SSTable::compress_merge(){
         //if(infile.eof()) break;
         //if(iter==sstable.end()) break;
     }
+    bool last_flag = false;
     
     while(!infile.eof()){
+        last_flag = true;
         p = outfile.tellp();
         //std::cout<<key<<" "<<val<<std::endl;
         outfile<<key<<" "<<val<<std::endl;
@@ -165,6 +172,7 @@ void SSTable::compress_merge(){
             old_sstable[key] = p;
         }
         count++;
+        last_key = key;
         infile>>key>>val;
     }
 
@@ -177,6 +185,14 @@ void SSTable::compress_merge(){
         }
         count++;
         iter++;
+    }
+
+    if(last_flag){
+        old_sstable[last_key] = p;
+    }
+    else{
+        iter--;
+        old_sstable[key] = p;
     }
 
     infile.close();
