@@ -81,9 +81,6 @@ std::string SSTable::db_get(std::string key){
         return iter->second;
     }
     else{
-        for(auto t : old_sstable){
-            std::cout<<t.first<<" - "<<t.second<<std::endl;
-        }
         long p;
         std::string k, v;
         std::map<std::string, long>::iterator it;
