@@ -27,6 +27,7 @@ const u_int8_t VOTE_GRANT_FALSE     = 0x00;
 
 const u_int8_t APPEND_SUCCESS       = 0x01;
 const u_int8_t APPEND_FAIL          = 0x00;
+const u_int8_t APPEND_FETCH         = 0x02;
 
 //const u_int8_t PROCEDURE_ERROR      = 0x91;
 //const u_int8_t PROCEDURE_NOT_FOUND  = 0x92;
@@ -103,12 +104,13 @@ struct request_append_package{
     u_int64_t prevlog_term;
     u_int64_t leader_commit;
     //u_int8_t log_entry[128];
+    u_int64_t leader_max_index;
     u_int64_t all_match_index;
     u_int32_t log_len;
     char log_entry[4096];
     request_append_package(){}
     void setdata(u_int64_t _term, u_int32_t _leader_id, u_int64_t _prevlog_index, 
-            u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit, u_int64_t _all_match_index)
+            u_int64_t _prevlog_term, const char *_log_entry, u_int64_t _leader_commit, u_int64_t _leader_max_index, u_int64_t _all_match_index)
     {
         header.package_type = REQ_APPEND;
         header.package_seq = 0;
@@ -119,6 +121,7 @@ struct request_append_package{
         log_len = strlen(_log_entry) + 1;
         strcpy(log_entry, _log_entry);
         leader_commit = htonll(_leader_commit);
+        leader_max_index = htonll(_leader_max_index);
         all_match_index = htonll(_all_match_index);
         //header.package_length = htons(sizeof(header)+sizeof(u_int64_t)*4+sizeof(u_int32_t)*2+log_len);
         //header.package_length = htons(sizeof(request_append_package));
@@ -133,6 +136,7 @@ struct request_append_package{
         prevlog_term = ntohll(prevlog_term);
         leader_commit = ntohll(leader_commit);
         log_len = ntohl(log_len);
+        leader_max_index = ntohll(leader_max_index);
         all_match_index = ntohll(all_match_index);
     }
 };

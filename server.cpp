@@ -162,7 +162,12 @@ void Server::start_server(){
                                 commit_index = std::min(rap.leader_commit, max_index);
                             }
                             follower_apply_log();
-                            arp.setdata(current_term, APPEND_SUCCESS);
+                            if(rap.leader_max_index > max_index){
+                                arp.setdata(current_term, APPEND_FETCH);
+                            }
+                            else{
+                                arp.setdata(current_term, APPEND_SUCCESS);
+                            }
                         }
                         else if(index_term.count(rap.prevlog_index)&&index_term[rap.prevlog_index]==rap.prevlog_term){
                             //需要处理追加、覆盖等情况
@@ -410,7 +415,7 @@ void Server::remote_append_call(u_int32_t remote_id){
 
     request_append_package rap;
     string logentry = "heartbeat";
-    rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index, all_match_index);
+    rap.setdata(current_term, server_id, last_applied, last_applied, (char*)logentry.c_str(), commit_index, max_index, all_match_index);
     ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
     if(ret<0){
         servers_info[remote_id].fd = -1;
@@ -456,7 +461,9 @@ void Server::remote_append_call(u_int32_t remote_id){
         current_term = arp.term;
     }
     else if(arp.term == current_term){  //remote term == current term
-        //TODO
+        if(arp.success == APPEND_FETCH){
+            log_append_queue.append(bind(&Server::append_log_to, this, remote_id));
+        }
     }
     else{                               //remote term < current term
         //no respond
@@ -590,7 +597,7 @@ void Server::append_log_to(u_int32_t remote_id){
         u_int64_t prevlog_index, prevlog_term;
         prevlog_index = next_index[remote_id] - 1;
         prevlog_term = prevlog_index==0 ? 0 : index_term[prevlog_index];
-        rap.setdata(current_term, server_id, prevlog_index, prevlog_term, (char*)log_entry.c_str(), commit_index, all_match_index);
+        rap.setdata(current_term, server_id, prevlog_index, prevlog_term, (char*)log_entry.c_str(), commit_index, max_index, all_match_index);
         ret = send(sockfd, (void*)&rap, ntohs(rap.header.package_length), MSG_DONTWAIT);
         if(ret<0){
             servers_info[remote_id].fd = -1;
