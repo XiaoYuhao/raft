@@ -693,8 +693,7 @@ void Server::follower_apply_log(){
             if(status == SET_SPILL) compress_index = _index;
         } 
     }
-    // TODO 
-    if(compress_index) clean_log(compress_index);
+    if(compress_index>1) clean_log(compress_index-1);
 }
 
 void Server::clean_log(u_int64_t log_index){

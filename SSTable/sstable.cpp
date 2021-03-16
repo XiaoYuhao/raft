@@ -58,15 +58,17 @@ SSTable* SSTable::create(){
 
 
 Status SSTable::db_set(std::string key, std::string val, u_int64_t index){
-    sstable[key] = val;
     std::cout<<"set "<<key<<" "<<val<<std::endl;
     std::cout<<sstable.size()<<" ---- "<<MAX_NUM<<std::endl;
+    Status status;
     if(sstable.size()>=MAX_NUM){
         std::cout<<"compress merge"<<std::endl;
         compress_merge();
-        return SET_SPILL;
+        status = SET_SPILL;
     }
-    return SET_SUCCESS;
+    else status = SET_SUCCESS;
+    sstable[key] = val;
+    return status;
 }
 
 std::string SSTable::db_get(std::string key){
