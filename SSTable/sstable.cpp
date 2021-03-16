@@ -79,8 +79,11 @@ std::string SSTable::db_get(std::string key){
     else{
         long p;
         std::string k, v;
+        std::cout<<"????"<<std::endl;
         std::map<std::string, long>::iterator it;
         it = old_sstable.lower_bound(key);
+        std::cout<<"!!!!"<<std::endl;
+        std::cout<<it->first<<" - "<<it->second<<std::endl;
         if(it->first==key){
             p = it->second;
         }
@@ -91,11 +94,12 @@ std::string SSTable::db_get(std::string key){
             it--;
             p = it->second;
         }
-        //std::cout<<"Index : "<<it->first<<" Peek : "<<p<<std::endl;
+        std::cout<<"Index : "<<it->first<<" Peek : "<<p<<std::endl;
         infile_old.clear();
         infile_old.seekg(p);
         while(!infile_old.eof()){
             infile_old>>k>>v;
+            std::cout<<k<<" - "<<v<<std::endl;
             if(k==key) return v;
         }
         return "None";
