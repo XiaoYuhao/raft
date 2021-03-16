@@ -3,7 +3,7 @@
 ###########################
 
 #source object target
-SOURCE 	:= test.cpp pthreadpool.h pthreadpool.cpp timer.cpp network.cpp network.h server.h server.cpp package.h 
+SOURCE 	:= test.cpp pthreadpool.h pthreadpool.cpp timer.cpp network.cpp network.h server.h server.cpp package.h SSTable/sstable.h SSTable/sstable.cpp 
 OBJS 	:= 
 TARGET	:= test
 

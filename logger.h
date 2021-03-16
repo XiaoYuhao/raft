@@ -36,11 +36,7 @@ public:
     int openlog(const char *_log_name, int _mode = CONSOLE){
         logflag = _mode;
         log_file = fopen(_log_name, "a");
-        if(log_file){
-            printf("open log file successfully.\n");
-            return 1;
-        }
-        printf("open log file failed.\n");
+        if(log_file) return 1;
         return 0;
     }
 

@@ -36,12 +36,14 @@ using std::bind;
 Server::Server(string config_file):log_append_queue(1){
     read_config(config_file);
     logger.openlog("test.log");
+    database = SSTable::create();
+
     state = FOLLOWER;   //初始状态为follower
     voted_for = -1;     //未投票
     voted_num = 0;
 
     commit_index = 0;
-    last_applied = 0;
+    //last_applied = 0;
 
     log_data_file.open("data.db", ios::in|ios::out);
     load_log();
@@ -81,6 +83,9 @@ void Server::election_timeout(){    //选举超时处理
             next_index.push_back(max_index+1);
             match_index.push_back(0);
         }
+        string noop = "NOOP";
+        write_log(noop);
+        log_append_queue.append(bind(&Server::append_log, this, max_index, -1));
     }
     voted_for = -1;
 
@@ -204,19 +209,19 @@ void Server::start_server(){
                 if(header.package_type == CLIENT_SET_REQ){
                     client_set_package csp;
                     ret = recv(sockfd, (void *)&csp, ntohs(header.package_length), MSG_DONTWAIT);
-                    //TODO 重定位Leader
+                    //重定位Leader
                     if(state!=LEADER){
                         client_set_res_package csrp;
                         csrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
                         ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
-                        printf("size = %d ret = %d\n", sizeof(csrp), ret);
-                        logger.info("Redirect [status:%d] client to current leader %s : %d.\n", csrp.status, csrp.ip_addr, ntohl(csrp.port));
-                        char buf[512];
+                        //printf("size = %d ret = %d\n", sizeof(csrp), ret);
+                        logger.info("Redirect client to current leader %s : %d.\n", csrp.ip_addr, ntohl(csrp.port));
+                        /*char buf[512];
                         memcpy(buf, (void*)&csrp, sizeof(csrp));
                         for(int i=0;i<sizeof(csrp);i++){
                             printf("%02x ", buf[i]);
                         }
-                        printf("\n");
+                        printf("\n");*/
                     }
                     else{
                         string req = "SET " + string(csp.buf) + " " + string(csp.buf+ntohl(csp.key_len));
@@ -229,7 +234,23 @@ void Server::start_server(){
                 }
                 if(header.package_type == CLIENT_GET_REQ){
                     //TODO
+                    client_get_package cgp;
+                    ret = recv(sockfd, (void *)&cgp, ntohs(header.package_length), MSG_DONTWAIT);
+                    //重定位
                     client_get_res_package cgrp;
+                    if(state!=LEADER){
+                        cgrp.setdata(RES_REDIRECT, servers_info[leader_id].ip_addr.c_str(), std::stoi(servers_info[leader_id].port));
+                        ret = send(sockfd, (void*)&cgrp, ntohs(cgrp.header.package_length), MSG_DONTWAIT);
+                        logger.info("Redirect client to current leader %s : %d.\n", cgrp.buf, ntohl(cgrp.port));
+                    }
+                    else{
+                        string key = string(cgp.buf);
+                        string val = database->db_get(key);
+                        //char bugfree[128] = "what is the bug?"; //vpfrint有未知bug，设置buf避免segmentfault
+                        //logger.info("Recv client get request [GET %s] RES = %s.\n", cgp.buf, val.c_str());
+                        cgrp.setdata(RES_SUCCESS, val.c_str(), 0);
+                        ret = send(sockfd, (void*)&cgrp, ntohs(cgrp.header.package_length), MSG_DONTWAIT);
+                    }
 
                 }
             }
@@ -261,6 +282,11 @@ void Server::read_config(string config_file){
         std::cout<<servers_info[i].port<<std::endl;
     }
     */
+    file.open("apply.log", ios::in);
+    file.peek();
+    if(!file.eof()) file>>last_applied;
+    else last_applied = 0;
+    file.close(); 
 }
 
 void Server::request_vote(){
@@ -526,6 +552,7 @@ void Server::append_log(u_int64_t log_index, int sockfd){
     else{
         csrp.setdata(RES_FAIL, "0.0.0.0", 11234);
     }
+    if(sockfd<0) return;
     int ret = send(sockfd, (void*)&csrp, sizeof(csrp), MSG_DONTWAIT);
     if(ret<0) close(sockfd);
 }
@@ -629,17 +656,6 @@ void Server::cover_log(u_int64_t index, u_int64_t m_index){
     }
 }
 
-void Server::follower_apply_log(){
-    while(commit_index > last_applied){
-        last_applied++;
-        string log_entry;
-        log_data_file.clear();
-        log_data_file.seekg(log_offset[last_applied]);
-        std::getline(log_data_file, log_entry);
-        logger.info("Apply log entry to state machine. [%s]\n", log_entry.c_str());
-    }
-}
-
 void Server::leader_apply_log(){
     u_int64_t ready_to_apply = commit_index + 1;
     while(max_index >= ready_to_apply){
@@ -655,6 +671,62 @@ void Server::leader_apply_log(){
         ready_to_apply++;
     }
     follower_apply_log();
+}
+
+void Server::follower_apply_log(){
+    Status status;
+    u_int64_t compress_index = 0;
+    while(commit_index > last_applied){
+        last_applied++;
+        string log_entry;
+        log_data_file.clear();
+        log_data_file.seekg(log_offset[last_applied]);
+        std::getline(log_data_file, log_entry);
+        logger.info("Apply log entry to state machine. [%s]\n", log_entry.c_str());
+        istringstream iss(log_entry);
+        u_int64_t _index, _term;
+        string _op, _key, _val;
+        iss>>_index>>_term>>_op;
+        if(_op=="SET"){
+            iss>>_key>>_val;
+            status = database->db_set(_key, _val, _index);
+            if(status == SET_SPILL) compress_index = _index;
+        } 
+    }
+    // TODO 
+    if(compress_index) clean_log(compress_index);
+}
+
+void Server::clean_log(u_int64_t log_index){
+    ofstream newfile;
+    newfile.open("tmp.db", std::ios::out);
+
+    map<u_int64_t, u_int64_t> new_log_offset;
+    map<u_int64_t, u_int64_t> new_index_term;
+    string log_entry;
+
+    new_index_term[log_index] = index_term[log_index];
+    while(max_index > log_index){
+        log_index++;
+        u_int64_t p = newfile.tellp();
+        
+        log_data_file.clear();
+        log_data_file.seekg(log_offset[log_index]);
+        std::getline(log_data_file, log_entry);
+        newfile<<log_entry<<std::endl;
+
+        new_log_offset[log_index] = p;
+        new_index_term[log_index] = index_term[log_index];
+    }
+
+    log_offset = new_log_offset;
+    index_term = new_index_term;
+
+    newfile.close();
+    log_data_file.close();
+    remove("data.db");
+    rename("tmp.db", "data.db");
+    log_data_file.open("data.db", ios::in|ios::out);
 }
 
 void Server::work(){

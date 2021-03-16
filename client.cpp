@@ -36,7 +36,7 @@ int connect_to_server(const char *ip_addr, const int port){
     return sockfd;
 }
 
-char server_ip[64] = "0.0.0.0";
+char server_ip[64] = "47.116.133.175";
 int port = 11234;
 
 void db_set(const char *key, const char *val){
@@ -75,6 +75,60 @@ void db_set(const char *key, const char *val){
     return;
 }
 
+void db_get(const char *key){
+    while(1){
+        int sockfd = connect_to_server(server_ip, port);
+        client_get_package cgp(key);
+        int ret = send(sockfd, (void*)&cgp, ntohs(cgp.header.package_length), 0);
+        package_header header;
+        client_get_res_package cgrp;
+        fd_set rfd;
+        FD_ZERO(&rfd);
+        FD_SET(sockfd, &rfd);
+        ret = 0;
+        switch(select(sockfd+1, &rfd, NULL, NULL, NULL)){
+            case -1:
+                cout<<"select error.\n";
+                break;
+            case 0:
+                cout<<"select timeout.\n";
+                break;
+            default:
+                ret = recv(sockfd, (void*)&header, sizeof(header), MSG_PEEK);
+                ret = recv(sockfd, (void*)&cgrp, ntohs(header.package_length), MSG_WAITALL);
+                if(ret == 0){
+                    cout<<"server quit.\n";
+                    break;
+                }
+                break;
+        }
+        cgrp.tohost();
+        //cout<<csrp.header.package_type<<" "<<csrp.header.package_length<<" "<<csrp.status<<" "<<csrp.ip_addr<<endl;
+        /*char buf[512];
+        memcpy(buf, (void*)&csrp, sizeof(csrp));
+        for(int i=0;i<sizeof(csrp);i++){
+            printf("%02x ", buf[i]);
+        }
+        printf("\n");*/
+        if(cgrp.status==RES_SUCCESS){
+            cout<<"Get key "<<key<<" successfully value = "<<cgrp.buf<<endl;
+            close(sockfd);
+            break;
+        }
+        if(cgrp.status==RES_FAIL){
+            cout<<"Get key value failed."<<endl;
+            close(sockfd);
+            break;
+        }
+        if(cgrp.status==RES_REDIRECT){
+            port = cgrp.port;
+            strcpy(server_ip, cgrp.buf);
+            cout<<"Redirect to current leader "<<server_ip<<" : "<<port<<endl;
+        }
+    }
+    return;
+}
+
 int main(int argc, char *argv[]){
     if(argc<=1){
         printf("please input correct params!\n");
@@ -85,7 +139,7 @@ int main(int argc, char *argv[]){
         return 0;
     }
     else if(!strcmp(argv[1], "get")&&argc==3){
-        
+        db_get(argv[2]);
     }
     else{
         printf("please input correct params!\n");

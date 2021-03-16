@@ -184,12 +184,11 @@ struct response_client_package{
 
 struct client_get_package{
     package_header header;
-    u_int32_t key_len;
     char buf[1024];
     client_get_package(){}
     client_get_package(const char *key){
         header.package_type = CLIENT_GET_REQ;
-        key_len = strlen(key) + 1;
+        u_int32_t key_len = strlen(key) + 1;
         strcpy(buf, key);
         //header.package_length = htons(sizeof(package_header)+4+key_len);
         header.package_length = htons(offsetof(struct client_get_package, buf)+key_len);
@@ -199,16 +198,22 @@ struct client_get_package{
 
 struct client_get_res_package{
     package_header header;
-    u_int32_t val_len;
+    u_int8_t status;
+    u_int32_t port;
     char buf[4096];
     client_get_res_package(){}
-    client_get_res_package(const char *val){
+    void setdata(u_int8_t st, const char *val, u_int32_t _port){
         header.package_type = RES_CLIENT_GET;
-        val_len = strlen(val) + 1;
+        status = st;
+        port = htonl(_port);
+        u_int32_t val_len = strlen(val) + 1;
         strcpy(buf, val);
         //header.package_length = htons(sizeof(header)+8+val_len);
         header.package_length = htons(offsetof(struct client_get_res_package, buf)+val_len);
-        val_len = htonl(val_len);
+    }
+    void tohost(){
+        header.package_length = ntohs(header.package_length);
+        port = ntohl(port);
     }
 };
 

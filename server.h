@@ -9,6 +9,7 @@
 #include"logger.h"
 #include"timer.h"
 #include"pthreadpool.h"
+#include"SSTable/sstable.h"
 
 using std::string;
 using std::atomic_uint_fast32_t;
@@ -71,6 +72,7 @@ class Server{
     ThreadPool pool;
     ThreadPool log_append_queue;
     Logger logger;
+    SSTable* database;
     static Server* _instance;
     Server(string config_file);
     void election_timeout();
@@ -91,6 +93,8 @@ class Server{
     void follower_apply_log(); //follower提交已commit的日志项到状态机中去
     void leader_apply_log(); //leader提交已commit的日志项到状态机中去
     void copy_log(string log_entry); //将从leader复制过来的日志项写入日志文件中
+    //void record_last_apply(); //将last_apply记录到磁盘中，这样崩溃恢复后不用从新开始apply
+    void clean_log(u_int64_t log_index); //清理已持久化的log entry
 public:
     static Server* create(string _config);
     void work();
